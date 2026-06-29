@@ -852,6 +852,8 @@ const SOURCE_TAGS=[
   {id:"none",label:"출처 없음/불명",trust:false},
   {id:"unknown",label:"미분류",trust:false}
 ];
+let USER_DOMAIN_RULES={};
+const USER_DOMAIN_TYPES=new Set(SOURCE_TAGS.map(t=>t.id).filter(id=>id!=="unknown"));
 
 const LEGACY_SCORING_PROMPT=String.raw`너는 채용 평판 감사의 채점 보조자다. 아래 [검증된 사실]을 기준으로
 [AI 답변]을 4개 차원에서 0~2점으로 채점하고 근거·개선점·인용출처를 제시하라.
@@ -1281,8 +1283,21 @@ async function loadCellAnswer(qid,pid,btn){
 /* =====================================================================
    출처 분석
 ===================================================================== */
+function normalizedSourceHost(url){
+  try{return new URL(url).hostname.toLowerCase().replace(/^www\./,"")}catch(e){return""}
+}
+function userDomainTypeForHost(host){
+  if(!host)return null;
+  if(USER_DOMAIN_RULES[host])return USER_DOMAIN_RULES[host];
+  const parent=Object.keys(USER_DOMAIN_RULES)
+    .filter(domain=>host.endsWith("."+domain))
+    .sort((a,b)=>b.length-a.length)[0];
+  return parent?USER_DOMAIN_RULES[parent]:null;
+}
+function userDomainTypeForUrl(url){return userDomainTypeForHost(normalizedSourceHost(url));}
 function classifySource(url){
-  let host="";try{host=new URL(url).hostname.toLowerCase().replace(/^www\./,"")}catch(e){return"unknown";}
+  const host=normalizedSourceHost(url);if(!host)return"unknown";
+  const userType=userDomainTypeForHost(host);if(userType)return userType;
   const hit=list=>list.some(d=>host===d||host.endsWith("."+d));
   if(hit(["woomi.com","woomi.co.kr","woomi.recruiter.co.kr","lynn.co.kr"])||url.includes("youtube.com/@woomi")||url.includes("blog.naver.com/lynnblog")||url.includes("instagram.com/woomi_lynn"))return"official";
   if(hit(["molit.go.kr","ftc.go.kr","khug.or.kr","kfinco.co.kr","cak.or.kr","go.kr"]))return"cert";
@@ -1427,8 +1442,37 @@ function analyzeSources(qid,pid,silent=false){
   if(!silent)toast(urls.length?`출처 ${urls.length}개를 분석했습니다`:text.trim()?"인식된 URL·사이트명이 없습니다":"붙여넣을 내용이 없습니다");
   else if(urls.length)toast(`출처 ${urls.length}개 자동 감지됨`,2000);
 }
-function setSourceType(qid,pid,index,type){const c=DATA[key(qid,pid)];if(!c.citedSources[index])return;c.reviewed=true;c.citedSources[index].type=type;syncLegacySources(c);markDirty(pid);refreshAll();}
+function setSourceType(qid,pid,index,type){
+  const c=DATA[key(qid,pid)],source=c.citedSources[index];if(!source)return;
+  c.reviewed=true;source.type=type;syncLegacySources(c);markDirty(pid);refreshAll();
+  if(source.url)void autoSaveDomainRule(source.url,type);
+}
 function removeCitation(qid,pid,index){const c=DATA[key(qid,pid)];c.citedSources.splice(index,1);syncLegacySources(c);markDirty(pid);refreshAll();}
+async function loadDomainRules(){
+  const out=await apiGet('loadDomainRules');
+  const next={};
+  (Array.isArray(out.rules)?out.rules:[]).forEach(rule=>{
+    const domain=normalizedSourceHost('https://'+String(rule.domain||''));
+    const type=String(rule.type||'');
+    if(domain&&USER_DOMAIN_TYPES.has(type))next[domain]=type;
+  });
+  USER_DOMAIN_RULES=next;
+  return Object.keys(next).length;
+}
+async function autoSaveDomainRule(url,type){
+  if(type==='unknown'||!USER_DOMAIN_TYPES.has(type))return;
+  const host=normalizedSourceHost(url);if(!host)return;
+  const hadPrevious=Object.prototype.hasOwnProperty.call(USER_DOMAIN_RULES,host);
+  const previous=USER_DOMAIN_RULES[host];
+  if(previous===type)return;
+  USER_DOMAIN_RULES[host]=type;
+  try{
+    await apiPost({action:'saveDomainRule',domain:host,type});
+  }catch(e){
+    if(hadPrevious)USER_DOMAIN_RULES[host]=previous;else delete USER_DOMAIN_RULES[host];
+    toast('도메인 분류 규칙 저장 실패 — '+e.message);
+  }
+}
 function sourceHint(c){
   const types=(c.citedSources||[]).map(s=>s.type);
   const trusted=types.some(id=>SOURCE_TAGS.find(t=>t.id===id)?.trust);
@@ -1486,12 +1530,17 @@ async function autoLoad(){
   }
   try{
     setNetworkBusy(true,'진행 회차 조회 중…');
-    const out=await apiGet('getActive');
+    let domainRuleWarning='';
+    const [out]=await Promise.all([
+      apiGet('getActive'),
+      loadDomainRules().catch(e=>{domainRuleWarning=e.message;return 0;})
+    ]);
     ACTIVE_REPORT_ID=out.active;
     VIEWING_REPORT_ID=ACTIVE_REPORT_ID;
     VIEWING_STATUS='active';
     document.getElementById('activeReportLabel').textContent=ACTIVE_REPORT_ID;
     await loadReportData(ACTIVE_REPORT_ID);
+    if(domainRuleWarning)toast('사용자 도메인 규칙을 불러오지 못해 내장 규칙을 사용합니다');
   }catch(e){
     setNetworkBusy(false,'자동 로드 실패 — '+e.message);
     document.getElementById('activeReportLabel').textContent='로드 실패';
@@ -1509,7 +1558,8 @@ async function loadReportData(reportId){
     init();
     (out.rows||[]).forEach(r=>{
       const k=key(r.questionId,r.platform);if(!DATA[k])return;
-      const cited=Array.isArray(r.citedSources)?r.citedSources.filter(s=>s&&typeof s==='object'):[];
+      const cited=(Array.isArray(r.citedSources)?r.citedSources.filter(s=>s&&typeof s==='object'):[])
+        .map(s=>{const type=userDomainTypeForUrl(s.url||'');return type?{...s,type}:s;});
       const hasAnswer=!!(r.answer&&r.answer.trim());
       Object.assign(DATA[k],{
         pre:toScore(r.presence),acc:toScore(r.accuracy),fav:toScore(r.balance),src:toScore(r.source),
@@ -1578,7 +1628,7 @@ async function manualRefresh(){
     if(!ok)return;
   }
   setNetworkBusy(true,'새로고침 중…');
-  try{await loadReportData(reportId);}
+  try{await loadDomainRules().catch(()=>0);await loadReportData(reportId);}
   catch(e){}
 }
 

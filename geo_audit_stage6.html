@@ -268,7 +268,7 @@
   .field-block>summary{list-style:none;cursor:pointer;padding:8px 10px;font-size:11.5px;font-weight:800;color:var(--ink-soft);user-select:none}
   .field-block>summary::-webkit-details-marker{display:none}
   .field-content{padding:0 9px 9px}
-  .field-content textarea{width:100%;min-height:86px;border:1px solid var(--line);border-radius:6px;padding:7px 8px;font:11.5px var(--sans);resize:vertical}
+  .field-content textarea{width:100%;min-height:86px;border:1px solid var(--line);border-radius:6px;padding:7px 8px;font:11.5px var(--sans);resize:vertical;white-space:pre-wrap;word-break:break-word}
   .advanced-score-menu{position:relative;flex-shrink:0}
   .advanced-score-menu>summary{list-style:none;width:25px;height:25px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px}
   .advanced-score-menu>summary::-webkit-details-marker{display:none}
@@ -549,14 +549,14 @@
 // 유료/무료를 별도 플랫폼으로 구분 — 총 8개
 // plan 필드는 측정조건·저장·매트릭스 전반에 자동 반영됩니다.
 const PLATFORMS=[
-  {id:"gpt_free",name:"ChatGPT",plan:"무료",        badge:"OpenAI"},
-  {id:"gpt_paid",name:"ChatGPT",plan:"유료(Plus)",   badge:"OpenAI"},
-  {id:"gem_free",name:"Gemini", plan:"무료",         badge:"Google"},
-  {id:"gem_paid",name:"Gemini", plan:"유료(Advanced)",badge:"Google"},
-  {id:"cla_free",name:"Claude", plan:"무료",         badge:"Anthropic"},
-  {id:"cla_paid",name:"Claude", plan:"유료(Pro)",    badge:"Anthropic"},
-  {id:"ppx_free",name:"Perplexity",plan:"무료",      badge:"Perplexity"},
-  {id:"ppx_paid",name:"Perplexity",plan:"유료(Pro)", badge:"Perplexity"}
+  {id:"gpt_free",name:"ChatGPT",plan:"무료",        badge:"OpenAI",    citationStyle:"korean_inline"},
+  {id:"gpt_paid",name:"ChatGPT",plan:"유료(Plus)",   badge:"OpenAI",    citationStyle:"numbered_domain"},
+  {id:"gem_free",name:"Gemini", plan:"무료",         badge:"Google",    citationStyle:"korean_inline"},
+  {id:"gem_paid",name:"Gemini", plan:"유료(Advanced)",badge:"Google",   citationStyle:"google_search"},
+  {id:"cla_free",name:"Claude", plan:"무료",         badge:"Anthropic", citationStyle:"markdown_link"},
+  {id:"cla_paid",name:"Claude", plan:"유료(Pro)",    badge:"Anthropic", citationStyle:"markdown_link"},
+  {id:"ppx_free",name:"Perplexity",plan:"무료",      badge:"Perplexity",citationStyle:"numbered_url"},
+  {id:"ppx_paid",name:"Perplexity",plan:"유료(Pro)", badge:"Perplexity",citationStyle:"numbered_url"}
 ];
 
 /* ⚠️ GAS_URL을 배포된 Apps Script 웹앱 URL로 교체하세요 */
@@ -1015,7 +1015,7 @@ function platformCell(q,p){
       <summary>① AI 응답 등록</summary>
       <div class="field-content">
         <textarea id="answer_${q.id}_${p.id}"
-          oninput="onAnswerInput('${q.id}','${p.id}',this.value)"
+          oninput="this.dataset.userEdited='1';onAnswerInput('${q.id}','${p.id}',this.value)"
           placeholder="AI 답변 전체를 드래그해서 붙여넣으세요. 출처·소스 섹션 포함 권장 — 인용 출처가 자동 분석됩니다.">${escapeH(c.aiAnswer)}</textarea>
         <div class="field-actions">
           <button class="read-only-action" onclick="loadCellAnswer('${q.id}','${p.id}',this)">시트 원문 보기</button>
@@ -1175,6 +1175,8 @@ const SITE_NAME_MAP={
   // 리뷰·커뮤니티
   "블라인드":"teamblind.com","잡플래닛":"jobplanet.co.kr","잡플레닛":"jobplanet.co.kr",
   "크레딧잡":"credejob.com","잡코리아":"jobkorea.co.kr","사람인":"saramin.co.kr",
+  // 건설 특화 취업정보
+  "건설워커":"conwor.co.kr","건설 워커":"conwor.co.kr","건설워커 랭킹":"conwor.co.kr",
   // 포털·취업정보
   "자소설닷컴":"jasoseol.com","자소설":"jasoseol.com","산군":"sankun.com",
   "딜매치":"dealmatch.kr","인크루트":"incruit.com","캐치":"catch.co.kr",
@@ -1206,9 +1208,39 @@ function onAnswerInput(qid,pid,value){
   _answerDebounce[qid+'__'+pid]=setTimeout(()=>analyzeSources(qid,pid,true),800);
 }
 
+/* ── 플랫폼별 인용 파서 ── */
+function parseCitationsByStyle(text, style){
+  const urls=[];
+  if(style==='numbered_url'){
+    // Perplexity: [1] https://... 또는 ^1 https://... 또는 1. https://...
+    const m=text.match(/(?:\[\d+\]|\^\d+|\d+\.\s)\s*(https?:\/\/[^\s<>"'\)\]]+)/g)||[];
+    m.forEach(s=>{const u=s.match(/https?:\/\/[^\s<>"'\)\]]+/);if(u)urls.push(u[0].replace(/[.,;:!?]+$/,""));});
+  }
+  if(style==='numbered_domain'){
+    // ChatGPT 유료: 하단 번호형 도메인 목록 ([1] jobplanet.co.kr 또는 1. teamblind.com)
+    const lines=text.split(/\n/);
+    lines.forEach(l=>{
+      const m=l.trim().match(/^(?:\[\d+\]|\d+[.)\s])\s*([a-z0-9\-]+(?:\.[a-z0-9\-]+)+(?:\/[^\s]*)?)$/i);
+      if(m){const u=m[1].replace(/[.,;:!?]+$/,"");if(!/^\d/.test(u))urls.push("https://"+u);}
+    });
+    // 인라인 번호참조 [1][2] 형식은 method1~6 fallback에서 처리
+  }
+  if(style==='google_search'){
+    // Gemini 유료: (출처: https://...) 또는 출처 섹션의 마크다운 링크
+    const src=text.match(/출처\s*:\s*(https?:\/\/[^\s\)]+)/g)||[];
+    src.forEach(s=>{const u=s.match(/https?:\/\/[^\s\)]+/);if(u)urls.push(u[0].replace(/[.,;:!?]+$/,""));});
+    // 나머지는 method1~6 처리
+  }
+  // markdown_link / korean_inline → 전용 파서 없음, 기존 method1~6으로 충분
+  return urls;
+}
+
 function analyzeSources(qid,pid,silent=false){
   const c=DATA[key(qid,pid)];if(!c)return;
   const text=c.aiAnswer||'';
+  const p=PLATFORMS.find(x=>x.id===pid)||{};
+  // 플랫폼 전용 파서 (방법0 — style 기반)
+  const styleUrls=parseCitationsByStyle(text,p.citationStyle||'');
   // 방법1: 마크다운 인라인 링크 [텍스트](URL) — Claude·Perplexity 형식
   const mdUrls=(text.match(/\]\((https?:\/\/[^)]+)\)/g)||[])
     .map(m=>m.slice(2,-1)).map(u=>u.replace(/[.,;:!?]+$/,""));
@@ -1220,13 +1252,17 @@ function analyzeSources(qid,pid,silent=false){
   const domainUrls=text.split(/\n/).map(l=>l.trim().replace(/^[-•·*\s]+/,"").trim())
     .filter(l=>l&&!l.startsWith("http")&&domainRe.test(l))
     .map(d=>"https://"+d);
-  // 방법4: 한국어·영문 사이트명 — ChatGPT가 한국어명으로 출력하는 경우 (정확히 일치할 때만)
-  // 불릿·특수문자·숫자 전처리 후 SITE_NAME_MAP 매핑
+  // 방법4: 한국어·영문 사이트명 — 전체 텍스트 인라인 키워드 스캔 (줄 구분 없음)
+  // 긴 키부터 매칭해 오인식 방지, 동일 도메인 중복 제거
   const nameUrls=[];
-  const textLines=text.split(/\n/).map(l=>l.trim().replace(/^[-•·*\s]+/,"").replace(/[*\[\]()·•\d\.。:：]/g,"").trim());
-  for(const line of textLines){
-    if(!line||line.length>30)continue; // 긴 줄은 본문이므로 제외
-    if(SITE_NAME_MAP[line])nameUrls.push("https://"+SITE_NAME_MAP[line]);
+  const _sortedKeys=Object.keys(SITE_NAME_MAP).sort((a,b)=>b.length-a.length);
+  const _matchedDomains=new Set();
+  for(const name of _sortedKeys){
+    if(name.length<3)continue;
+    if(text.includes(name)){
+      const domain=SITE_NAME_MAP[name];
+      if(!_matchedDomains.has(domain)){_matchedDomains.add(domain);nameUrls.push("https://"+domain);}
+    }
   }
   // 방법5: www. 인라인 도메인 — "www.jobplanet.co.kr우미건설..." 형식
   const wwwUrls=(text.match(/www\.[a-z0-9\-]+(?:\.[a-z0-9\-]+)+(?:\/[^\s가-힣\]\)<>"']*)?/gi)||[])
@@ -1239,7 +1275,7 @@ function analyzeSources(qid,pid,silent=false){
     .map(u=>"https://"+u.replace(/[.,;:!?]+$/,""))
     .filter(u=>{try{const h=new URL(u).hostname;return!h.startsWith("www.")&&/^[a-z]+$/i.test(h.split('.').pop());}catch(e){return false;}});
   // 도메인 기준 중복 제거 — 같은 사이트의 여러 페이지는 하나로
-  const allUrls=[...mdUrls,...fullUrls,...domainUrls,...nameUrls,...wwwUrls,...bareUrls];
+  const allUrls=[...styleUrls,...mdUrls,...fullUrls,...domainUrls,...nameUrls,...wwwUrls,...bareUrls];
   const seenDomains=new Map();
   allUrls.forEach(u=>{
     try{
@@ -1344,6 +1380,7 @@ async function loadReportData(reportId){
       Object.assign(DATA[k],{
         pre:toScore(r.presence),acc:toScore(r.accuracy),fav:toScore(r.balance),src:toScore(r.source),
         aiEvaluation:r.aiEvaluation||'',
+        aiAnswer:r.answer||DATA[k].aiAnswer||'',
         citedSources:cited,
         sources:[...new Set(cited.map(s=>s.type))],
         note:r.note||'',
@@ -1355,11 +1392,35 @@ async function loadReportData(reportId){
     applyViewingState();
     setNetworkBusy(false,'불러왔습니다');
     toast('데이터를 불러왔습니다');
+    // 백그라운드에서 AI 답변 원문 자동 로드
+    backgroundLoadAllAnswers(reportId);
   }catch(e){
     setNetworkBusy(false,'불러오기 실패');
     toast('불러오기 실패 — '+e.message);
     throw e;
   }
+}
+
+/* 백그라운드 전체 답변 자동 로드 — 화면 차단 없이 순차 처리 */
+async function backgroundLoadAllAnswers(reportId){
+  let loaded=0;
+  for(const p of PLATFORMS){
+    for(const q of QUESTIONS){
+      const c=DATA[key(q.id,p.id)];
+      if(!c||c.answerLoaded)continue;
+      try{
+        const out=await apiGet('loadAnswer',{reportId,questionId:q.id,platform:p.id});
+        const ans=out.answer||'';
+        c.aiAnswer=ans;
+        c.answerLoaded=true;
+        const el=document.getElementById('answer_'+q.id+'_'+p.id);
+        if(el&&!el.dataset.userEdited)el.value=ans;
+        if(ans.trim())loaded++;
+      }catch(e){/* 개별 실패는 무시 */}
+      await new Promise(r=>setTimeout(r,60)); // 60ms 간격 — GAS 쿼터 보호
+    }
+  }
+  if(loaded>0)toast(loaded+'개 AI 답변 원문을 불러왔습니다',2500);
 }
 
 /* =====================================================================
@@ -1949,7 +2010,7 @@ async function copyScoringPromptForCard(qid,pid,btn){
     toast(answer?"채점 보조 프롬프트 + AI 답변이 복사되었습니다":"채점 보조 프롬프트가 복사되었습니다");
   }catch(e){toast("복사 실패");}
 }
-function toast(m){var t=document.getElementById("toast");if(!t)return;t.textContent=m;t.classList.add("show");setTimeout(function(){t.classList.remove("show");},1900);}
+function toast(m,dur){var t=document.getElementById("toast");if(!t)return;t.textContent=m;t.classList.add("show");setTimeout(function(){t.classList.remove("show");},dur||1900);}
 function exportJSON(){
   var blob=new Blob([JSON.stringify({meta:{tool:"woomi-geo-audit-stage6-model-b",date:new Date().toISOString(),reportId:VIEWING_REPORT_ID||ACTIVE_REPORT_ID},data:DATA},null,2)],{type:"application/json"});
   var a=document.createElement("a");

@@ -1299,12 +1299,51 @@ function classifySource(url){
   const host=normalizedSourceHost(url);if(!host)return"unknown";
   const userType=userDomainTypeForHost(host);if(userType)return userType;
   const hit=list=>list.some(d=>host===d||host.endsWith("."+d));
-  if(hit(["woomi.com","woomi.co.kr","woomi.recruiter.co.kr","lynn.co.kr"])||url.includes("youtube.com/@woomi")||url.includes("blog.naver.com/lynnblog")||url.includes("instagram.com/woomi_lynn"))return"official";
-  if(hit(["molit.go.kr","ftc.go.kr","khug.or.kr","kfinco.co.kr","cak.or.kr","go.kr"]))return"cert";
-  if(hit(["mk.co.kr","hankyung.com","dnews.co.kr","yna.co.kr","chosun.com","donga.com","joongang.co.kr"]))return"press";
-  if(hit(["teamblind.com","jobplanet.co.kr","jobplanet.com"]))return"review";
-  if(hit(["namu.wiki","wikipedia.org"]))return"wiki";
-  if(hit(["saramin.co.kr","incruit.com","catch.co.kr","jobkorea.co.kr","sankun.com","dealmatch.kr"]))return"portal";
+
+  // 공식 (우미건설 채널)
+  if(hit(["woomi.com","woomi.co.kr","woomi.recruiter.co.kr","lynn.co.kr","lynnstrauss.com"])
+    ||url.includes("youtube.com/@woomi")||url.includes("youtube.com/woomi")
+    ||url.includes("blog.naver.com/lynnblog")||url.includes("blog.naver.com/woomi")
+    ||url.includes("instagram.com/woomi_lynn")||url.includes("instagram.com/woomi"))return"official";
+
+  // 인증·정부 — .go.kr/.or.kr 자동 인식
+  if(host.endsWith(".go.kr")||host==="go.kr")return"cert";
+  if(hit(["khug.or.kr","cak.or.kr","kisrating.com","kfinco.co.kr","kcmi.re.kr",
+          "kicpa.or.kr","kab.or.kr","kosha.or.kr","kotra.or.kr","kca.kr",
+          "kiso.or.kr","kaia.or.kr","kbiz.or.kr","greenbuilding.re.kr",
+          "seouldesignweek.or.kr","seoul-designweek.or.kr"]))return"cert";
+  if(host.endsWith(".or.kr"))return"cert";
+
+  // 언론·기사
+  if(hit(["mk.co.kr","hankyung.com","dnews.co.kr","yna.co.kr","chosun.com",
+          "donga.com","joongang.co.kr","joins.com","heraldcorp.com","mt.co.kr",
+          "edaily.co.kr","fnnews.com","asiae.co.kr","newsis.com",
+          "news1.kr","newspim.com","sedaily.com","inews24.com","etnews.com",
+          "zdnet.co.kr","bloter.net","ddaily.co.kr","newsvalue.kr",
+          "newsspace.kr","businesspost.co.kr","bizwatch.co.kr","thebell.co.kr",
+          "tf.co.kr","tfnews.co.kr","consline.co.kr","ebn.co.kr",
+          "moneys.co.kr","econovill.com","nate.com","news.daum.net"]))return"press";
+  if(/^(news|press|daily|times|journal|herald|post|report)/.test(host.split(".")[0]))return"press";
+
+  // 리뷰·커뮤니티
+  if(hit(["teamblind.com","blind.com","jobplanet.co.kr","jobplanet.com",
+          "glassdoor.com","indeed.com","credejob.com","wanted.co.kr",
+          "tistory.com","brunch.co.kr","instiz.net","dcinside.com",
+          "fmkorea.com","clien.net","ppomppu.co.kr","reddit.com","quora.com"]))return"review";
+  if(url.includes("blog.naver.com")||url.includes("cafe.naver.com"))return"review";
+  if(hit(["youtube.com","instagram.com","facebook.com","twitter.com","x.com",
+          "linkedin.com","tiktok.com"]))return"review";
+
+  // 위키
+  if(hit(["namu.wiki","wikipedia.org","wikimedia.org"]))return"wiki";
+
+  // 채용·정보 포털
+  if(hit(["saramin.co.kr","incruit.com","catch.co.kr","jobkorea.co.kr",
+          "sankun.com","dealmatch.kr","conwor.co.kr","worker.co.kr",
+          "jasoseol.com","linkareer.com","jumpit.io","rallit.com",
+          "albamon.com","alba.co.kr","deepsearch.com","remember.co.kr",
+          "naver.com","daum.net","me2.do","bit.ly","han.gl","url.kr"]))return"portal";
+
   return"unknown";
 }
 // ChatGPT가 출력하는 한국어/영어 사이트명 → 도메인 매핑
@@ -1559,7 +1598,14 @@ async function loadReportData(reportId){
     (out.rows||[]).forEach(r=>{
       const k=key(r.questionId,r.platform);if(!DATA[k])return;
       const cited=(Array.isArray(r.citedSources)?r.citedSources.filter(s=>s&&typeof s==='object'):[])
-        .map(s=>{const type=userDomainTypeForUrl(s.url||'');return type?{...s,type}:s;});
+        .map(s=>{
+          // 1순위: 사용자 정의 규칙
+          const userType=userDomainTypeForUrl(s.url||'');
+          if(userType)return{...s,type:userType};
+          // 2순위: 미분류(unknown/없음)이면 classifySource 재실행
+          if(!s.type||s.type==='unknown')return{...s,type:classifySource(s.url||'')};
+          return s;
+        });
       const hasAnswer=!!(r.answer&&r.answer.trim());
       Object.assign(DATA[k],{
         pre:toScore(r.presence),acc:toScore(r.accuracy),fav:toScore(r.balance),src:toScore(r.source),

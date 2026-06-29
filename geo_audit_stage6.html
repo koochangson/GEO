@@ -849,6 +849,7 @@ const SOURCE_TAGS=[
   {id:"review",label:"리뷰·커뮤니티",trust:false},
   {id:"wiki",label:"위키",trust:false},
   {id:"portal",label:"채용·정보 포털",trust:false},
+  {id:"competitor",label:"타기업·경쟁사",trust:false},
   {id:"none",label:"출처 없음/불명",trust:false},
   {id:"unknown",label:"미분류",trust:false}
 ];
@@ -1305,6 +1306,16 @@ function classifySource(url){
     ||url.includes("youtube.com/@woomi")||url.includes("youtube.com/woomi")
     ||url.includes("blog.naver.com/lynnblog")||url.includes("blog.naver.com/woomi")
     ||url.includes("instagram.com/woomi_lynn")||url.includes("instagram.com/woomi"))return"official";
+
+  // 타기업·경쟁사 (건설·시행사)
+  if(hit([
+    "samsungcnt.com","gsconst.co.kr","hdcivl.co.kr","daelim.co.kr",
+    "hyundai-enc.com","posco-e.com","sk-eandckorea.com","lotte-enc.com",
+    "hanwha.com","taeyoungenc.com","hoban.co.kr","doosan-enerbility.com",
+    "daewooconstruction.com","ssangyong.co.kr","kolon.com","hanil.com",
+    "hdc.co.kr","hl-deco.com","chunwoo.co.kr","dongwon-systems.com",
+    "ipark.com","hillstateclub.com","e-lotte.com","prugio.com"
+  ]))return"competitor";
 
   // 인증·정부 — .go.kr/.or.kr 자동 인식
   if(host.endsWith(".go.kr")||host==="go.kr")return"cert";

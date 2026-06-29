@@ -1510,10 +1510,12 @@ async function loadReportData(reportId){
     (out.rows||[]).forEach(r=>{
       const k=key(r.questionId,r.platform);if(!DATA[k])return;
       const cited=Array.isArray(r.citedSources)?r.citedSources.filter(s=>s&&typeof s==='object'):[];
+      const hasAnswer=!!(r.answer&&r.answer.trim());
       Object.assign(DATA[k],{
         pre:toScore(r.presence),acc:toScore(r.accuracy),fav:toScore(r.balance),src:toScore(r.source),
         aiEvaluation:r.aiEvaluation||'',
         aiAnswer:r.answer||DATA[k].aiAnswer||'',
+        answerLoaded:hasAnswer||DATA[k].answerLoaded||false, // GAS가 answer 포함 시 별도 loadAnswer 생략
         citedSources:cited,
         sources:[...new Set(cited.map(s=>s.type))],
         note:r.note||'',
@@ -1534,26 +1536,35 @@ async function loadReportData(reportId){
   }
 }
 
-/* 백그라운드 전체 답변 자동 로드 — 화면 차단 없이 순차 처리 */
+/* 전체 답변 병렬 로드 — 플랫폼 단위 8개 동시 처리 */
 async function backgroundLoadAllAnswers(reportId){
+  // 플랫폼별로 5개 문항을 한 번에 병렬 처리 (8개 플랫폼 × 5문항 = 40건 → 5라운드 × 8개 동시)
   let loaded=0;
-  for(const p of PLATFORMS){
-    for(const q of QUESTIONS){
-      const c=DATA[key(q.id,p.id)];
-      if(!c||c.answerLoaded)continue;
-      try{
-        const out=await apiGet('loadAnswer',{reportId,questionId:q.id,platform:p.id});
-        const ans=out.answer||'';
-        c.aiAnswer=ans;
-        c.answerLoaded=true;
-        const el=document.getElementById('answer_'+q.id+'_'+p.id);
-        if(el&&!el.dataset.userEdited)el.value=ans;
-        if(ans.trim())loaded++;
-      }catch(e){/* 개별 실패는 무시 */}
-      await new Promise(r=>setTimeout(r,60)); // 60ms 간격 — GAS 쿼터 보호
-    }
+  const fetchOne=async(p,q)=>{
+    const c=DATA[key(q.id,p.id)];
+    if(!c||c.answerLoaded)return;
+    try{
+      const out=await apiGet('loadAnswer',{reportId,questionId:q.id,platform:p.id});
+      const ans=out.answer||'';
+      c.aiAnswer=ans;
+      c.answerLoaded=true;
+      // textarea 업데이트
+      const el=document.getElementById('answer_'+q.id+'_'+p.id);
+      if(el&&!el.dataset.userEdited)el.value=ans;
+      // Q행 상태 스팬 업데이트
+      const st=cellStatus(c);
+      const stEl=document.getElementById('qst_'+q.id+'_'+p.id);
+      if(stEl){stEl.textContent=st.text;stEl.className='q-row-status '+st.cls;}
+      if(ans.trim())loaded++;
+    }catch(e){/* 개별 실패 무시 */}
+  };
+  // 문항별로 8개 플랫폼 동시 실행 (GAS 쿼터 안전 범위)
+  for(const q of QUESTIONS){
+    await Promise.allSettled(PLATFORMS.map(p=>fetchOne(p,q)));
+    // 문항 라운드 완료 후 전체 플랫폼 카운터 갱신
+    PLATFORMS.forEach(p=>refreshPlatformUI(p.id));
   }
-  if(loaded>0)toast(loaded+'개 AI 답변 원문을 불러왔습니다',2500);
+  if(loaded>0)toast(loaded+'개 AI 답변을 불러왔습니다',2500);
 }
 
 /* =====================================================================

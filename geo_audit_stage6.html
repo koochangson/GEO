@@ -402,28 +402,27 @@
   header{padding:16px 20px 14px!important}
   /* ===== NEW SIMPLIFIED UI ===== */
   /* 플랫폼 카드 재설계 */
-  .plat-header-row{display:flex;align-items:center;gap:10px;padding:12px 15px 6px}
-  .plat-name-big{font-weight:800;font-size:14px;color:var(--ink)}
-  .plat-plan-text{font-size:12px;color:var(--muted);font-weight:600}
+  .plat-header-row{display:flex;align-items:center;gap:0;padding:8px 15px;border-bottom:1px solid var(--line)}
+  .plat-name-big{font-weight:800;font-size:13px;color:var(--ink);width:90px;flex-shrink:0}
+  .plat-plan-text{font-size:11.5px;color:var(--muted);font-weight:600;width:160px;flex-shrink:0}
   .plat-provider{font-size:11px;color:var(--muted)}
-  .plat-overall-badge{margin-left:auto;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--grey-bg);color:var(--grey);white-space:nowrap}
+  .plat-overall-badge{font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--grey-bg);color:var(--grey);white-space:nowrap;margin:0 8px 0 6px;flex-shrink:0}
   .plat-overall-badge.done{background:var(--green-bg);color:var(--green)}
   .plat-overall-badge.partial{background:var(--amber-bg);color:var(--amber)}
-  .plat-progress-row{padding:0 15px 6px;font-size:11.5px;color:var(--muted)}
+  .plat-progress-row{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);flex:1;padding:0 10px}
   .plat-progress-num{font-family:var(--mono);font-weight:800;color:var(--ink);font-size:13px;margin-right:10px}
   .plat-progress-detail{color:var(--muted)}
-  .plat-action-row{display:flex;align-items:center;gap:6px;padding:6px 15px 12px;border-bottom:1px solid var(--line)}
-  .plat-action-row .btn-primary{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer}
+  .plat-action-row{display:flex;align-items:center;gap:6px;flex-shrink:0}
+  .plat-action-row .btn-primary{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:4px 12px;font-size:11.5px;font-weight:700;cursor:pointer}
   .plat-action-row .btn-primary:hover{opacity:.88}
-  .plat-action-row .btn-secondary{background:#f1f5f9;color:var(--ink-soft);border:1px solid var(--line-strong);border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer}
+  .plat-action-row .btn-secondary{background:#f1f5f9;color:var(--ink-soft);border:1px solid var(--line-strong);border-radius:6px;padding:4px 11px;font-size:11.5px;font-weight:600;cursor:pointer}
   .plat-action-row .btn-secondary:hover{background:#e2e8f0}
-  .plat-action-row .btn-save{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent);border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer}
+  .plat-action-row .btn-save{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent);border-radius:6px;padding:4px 11px;font-size:11.5px;font-weight:700;cursor:pointer}
   .plat-action-row .btn-save:hover{background:var(--accent);color:#fff}
   .plat-action-row .btn-save.dirty{background:var(--accent);color:#fff}
   .plat-action-row .btn-save:disabled{opacity:.4;cursor:not-allowed}
-  .plat-action-row .pg-spacer{flex:1}
-  .plat-action-row .pg-arrow{color:var(--muted);font-size:10px;transition:transform .2s;cursor:pointer}
-  .platform-group[open] .plat-action-row .pg-arrow{transform:rotate(90deg)}
+  .pg-arrow{color:var(--muted);font-size:10px;transition:transform .2s;cursor:pointer;margin-left:4px}
+  .platform-group[open] .pg-arrow{transform:rotate(90deg)}
 
   /* 측정 기준 요약 바 */
   .cond-summary-bar{display:flex;align-items:center;gap:8px;padding:7px 12px;background:#f8fafc;border-bottom:1px solid var(--line);font-size:11.5px}
@@ -1043,20 +1042,18 @@ function buildPlatformInputs(){
       <summary class="plat-summary-wrapper">
         <div class="plat-header-row">
           <span class="plat-name-big">${p.name}</span>
-          <span class="plat-plan-text">${p.plan}</span>
-          <span class="plat-provider">· ${p.badge}</span>
+          <span class="plat-plan-text">${p.plan} <span class="plat-provider">· ${p.badge}</span></span>
           <span class="plat-overall-badge" id="platOverall_${p.id}">미평가</span>
-        </div>
-        <div class="plat-progress-row">
-          <span class="plat-progress-num" id="platProgNum_${p.id}">0/${QUESTIONS.length}</span>
-          <span class="plat-progress-detail" id="platProgDetail_${p.id}">답변 0 · 채점 0 · 검토 0</span>
-        </div>
-        <div class="plat-action-row">
-          <button class="btn-secondary" onclick="event.stopPropagation();copyBatchScoringPrompt('${p.id}',this)" id="batchBtn_${p.id}">일괄 복사</button>
-          <button class="btn-secondary" onclick="event.stopPropagation();togglePasteResult('${p.id}')">결과 붙여넣기</button>
-          <button class="btn-save" id="savePlat_${p.id}" onclick="event.stopPropagation();savePlatformById('${p.id}')">저장</button>
-          <span class="pg-spacer"></span>
-          <span class="pg-arrow">▶</span>
+          <div class="plat-progress-row">
+            <span class="plat-progress-num" id="platProgNum_${p.id}">0/${QUESTIONS.length}</span>
+            <span class="plat-progress-detail" id="platProgDetail_${p.id}">답변 0 · 채점 0 · 검토 0</span>
+          </div>
+          <div class="plat-action-row">
+            <button class="btn-secondary" onclick="event.stopPropagation();copyBatchScoringPrompt('${p.id}',this)" id="batchBtn_${p.id}">일괄 복사</button>
+            <button class="btn-secondary" onclick="event.stopPropagation();togglePasteResult('${p.id}')">결과 붙여넣기</button>
+            <button class="btn-save" id="savePlat_${p.id}" onclick="event.stopPropagation();savePlatformById('${p.id}')">저장</button>
+            <span class="pg-arrow">▶</span>
+          </div>
         </div>
       </summary>
       <div class="platform-body" style="padding:0;background:var(--panel)">
@@ -1111,6 +1108,7 @@ function platformCell(q,p){
     <span class="q-row-title">${q.title}</span>
     <button class="q-row-action" onclick="event.stopPropagation();copyQPromptBtn(event,'${q.id}')" title="${escapeA(q.prompt)}">복사</button>
     <button class="q-row-action" id="qfollowupBtn_${q.id}_${p.id}" onclick="event.stopPropagation();toggleQFollowup('${q.id}','${p.id}')">추가확인</button>
+    <button class="q-row-action" id="qrescore_${q.id}_${p.id}" onclick="event.stopPropagation();toggleQRescore('${q.id}','${p.id}')">⚙</button>
     <span class="q-row-status ${st.cls}" id="qst_${q.id}_${p.id}">${st.text}</span>
     <span class="q-row-score" id="qsc2_${q.id}_${p.id}">${sc}</span>
     <span class="q-row-arrow" id="qarrow_${q.id}_${p.id}">▶</span>`;
@@ -1128,6 +1126,25 @@ function platformCell(q,p){
     </div>`;
   wrapper.appendChild(followupPanel);
 
+  // ── 재채점 인라인 패널 ──
+  const rescorePanel=document.createElement("div");
+  rescorePanel.className="q-followup-panel";
+  rescorePanel.id=`qrescorepanel_${q.id}_${p.id}`;
+  rescorePanel.style.background="#fffbeb";
+  rescorePanel.innerHTML=`
+    <div style="font-size:10.5px;color:var(--muted);margin-bottom:6px">개별 문항만 다시 채점할 때 사용합니다. 일반 운영은 플랫폼 일괄 채점을 우선 사용하세요.</div>
+    <div class="scoring-prompt-bar" style="margin-bottom:6px">
+      <button class="copy-scoring-btn" onclick="copyScoringPromptForCard('${q.id}','${p.id}',this)">채점 프롬프트 복사</button>
+    </div>
+    <textarea id="evaluation_${q.id}_${p.id}"
+      oninput="setText('${q.id}','${p.id}','aiEvaluation',this.value)"
+      placeholder="채점 AI JSON 결과를 붙여넣으세요"
+      style="width:100%;min-height:72px;border:1px solid #fde68a;border-radius:5px;padding:6px 8px;font:11px var(--sans);resize:vertical;background:#fff">${escapeH(c.aiEvaluation)}</textarea>
+    <div class="field-actions" style="margin-top:5px">
+      <button class="primary" onclick="parseEvaluation('${q.id}','${p.id}')">JSON 파싱</button>
+    </div>`;
+  wrapper.appendChild(rescorePanel);
+
   // ── Q 상세 패널 (기본 숨김) ──
   const detail=document.createElement("div");
   detail.className="q-detail";
@@ -1135,23 +1152,6 @@ function platformCell(q,p){
 
   const be=c.balanceEvidence||{};
   detail.innerHTML=`
-    <details class="advanced-score-menu" style="margin:0 0 6px;position:relative">
-      <summary title="항목별 재채점" style="list-style:none;cursor:pointer;width:max-content;font-size:10.5px;color:var(--muted);font-weight:700">⚙ 이 문항만 재채점</summary>
-      <div class="advanced-score-pop" onclick="event.stopPropagation()">
-        <div class="advanced-score-caption">개별 문항만 다시 채점해야 할 때 사용합니다.</div>
-        <div class="scoring-prompt-bar">
-          <span class="scoring-prompt-label">채점 프롬프트</span>
-          <button class="copy-scoring-btn" onclick="copyScoringPromptForCard('${q.id}','${p.id}',this)">복사</button>
-        </div>
-        <textarea id="evaluation_${q.id}_${p.id}"
-          oninput="setText('${q.id}','${p.id}','aiEvaluation',this.value)"
-          placeholder="항목별 재채점 JSON을 붙여넣으세요">${escapeH(c.aiEvaluation)}</textarea>
-        <div class="field-actions">
-          <button class="primary" onclick="parseEvaluation('${q.id}','${p.id}')">JSON 파싱</button>
-        </div>
-      </div>
-    </details>
-
     <details class="field-block">
       <summary>① AI 응답 등록</summary>
       <div class="field-content">
@@ -1888,6 +1888,13 @@ function togglePasteResult(pid){
   const panel=document.getElementById('pastePanel_'+pid);
   if(!panel)return;
   panel.classList.toggle('open');
+}
+function toggleQRescore(qid,pid){
+  const panel=document.getElementById('qrescorepanel_'+qid+'_'+pid);
+  const btn=document.getElementById('qrescore_'+qid+'_'+pid);
+  if(!panel)return;
+  const open=panel.classList.toggle('open');
+  if(btn)btn.classList.toggle('followup-active',open);
 }
 function toggleQFollowup(qid,pid){
   const panel=document.getElementById('qfollowup_'+qid+'_'+pid);

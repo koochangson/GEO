@@ -267,7 +267,7 @@
   .field-block{background:#fff;border:1px solid var(--line);border-radius:7px;margin-bottom:8px;overflow:hidden}
   .field-block>summary{list-style:none;cursor:pointer;padding:8px 10px;font-size:11.5px;font-weight:800;color:var(--ink-soft);user-select:none}
   .field-block>summary::-webkit-details-marker{display:none}
-  .field-content{padding:0 9px 9px}
+  .field-content{padding:9px 9px 9px}
   .field-content textarea{width:100%;min-height:86px;border:1px solid var(--line);border-radius:6px;padding:7px 8px;font:11.5px var(--sans);resize:vertical;white-space:pre-wrap;word-break:break-word}
   .advanced-score-menu{position:relative;flex-shrink:0}
   .advanced-score-menu>summary{list-style:none;width:25px;height:25px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px}
@@ -299,6 +299,8 @@
   .rec-radio-row label,.rec-check-row label{display:flex;align-items:center;gap:4px;cursor:pointer}
   @media(max-width:640px){.modelb-grid,.modelb-core{grid-template-columns:1fr}}
   .review-block{background:#fff;border:1px solid var(--line);border-radius:7px;margin-top:8px;overflow:hidden}
+  .review-section{border-top:2px solid var(--line);margin-top:10px;padding-top:2px}
+  .review-section-header{font-size:11.5px;font-weight:800;color:var(--muted);padding:8px 10px 4px;display:flex;justify-content:space-between;gap:8px}
   .review-block>summary{list-style:none;cursor:pointer;padding:8px 10px;font-size:11.5px;font-weight:800;color:var(--ink-soft);user-select:none;display:flex;justify-content:space-between;gap:8px}
   .review-block>summary::-webkit-details-marker{display:none}
   .review-body{padding:0 9px 9px}
@@ -402,11 +404,11 @@
   header{padding:16px 20px 14px!important}
   /* ===== NEW SIMPLIFIED UI ===== */
   /* 플랫폼 카드 재설계 */
-  .plat-header-row{display:flex;align-items:center;gap:0;padding:8px 15px;border-bottom:1px solid var(--line)}
+  .plat-header-row{display:flex;align-items:center;gap:0;padding:8px 15px}
   .plat-name-big{font-weight:800;font-size:13px;color:var(--ink);width:90px;flex-shrink:0}
   .plat-plan-text{font-size:11.5px;color:var(--muted);font-weight:600;width:160px;flex-shrink:0}
   .plat-provider{font-size:11px;color:var(--muted)}
-  .plat-overall-badge{font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--grey-bg);color:var(--grey);white-space:nowrap;margin:0 8px 0 6px;flex-shrink:0}
+  .plat-overall-badge{font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--grey-bg);color:var(--grey);white-space:nowrap;margin-left:auto;margin-right:10px;flex-shrink:0}
   .plat-overall-badge.done{background:var(--green-bg);color:var(--green)}
   .plat-overall-badge.partial{background:var(--amber-bg);color:var(--amber)}
   .plat-progress-row{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);flex:1;padding:0 10px}
@@ -1152,21 +1154,15 @@ function platformCell(q,p){
 
   const be=c.balanceEvidence||{};
   detail.innerHTML=`
-    <details class="field-block">
-      <summary>① AI 응답 등록</summary>
-      <div class="field-content">
-        <textarea id="answer_${q.id}_${p.id}"
-          oninput="this.dataset.userEdited='1';onAnswerInput('${q.id}','${p.id}',this.value)"
-          placeholder="AI 답변을 붙여넣으세요. 출처 섹션 포함 권장.">${escapeH(c.aiAnswer)}</textarea>
-        <div class="field-actions">
+    <div class="field-content">
+      <textarea id="answer_${q.id}_${p.id}"
+        oninput="this.dataset.userEdited='1';onAnswerInput('${q.id}','${p.id}',this.value)"
+        placeholder="AI 답변을 붙여넣으세요. 출처 섹션 포함 권장.">${escapeH(c.aiAnswer)}</textarea>
+      <div class="citation-list" id="citations_${q.id}_${p.id}">${citationRowsHtml(q.id,p.id,c)}</div>
+    </div>
 
-        </div>
-        <div class="citation-list" id="citations_${q.id}_${p.id}">${citationRowsHtml(q.id,p.id,c)}</div>
-      </div>
-    </details>
-
-    <details class="review-block">
-      <summary>② 검토·점수 수정 <span class="review-hint">AI 채점 후 이상 항목만</span></summary>
+    <div class="review-section">
+      <div class="review-section-header">검토·점수 수정 <span class="review-hint">AI 채점 후 이상 항목만</span></div>
       <div class="review-body">
         ${modelBPanelHtml(q,p,c)}
         <div class="notes">
@@ -1177,7 +1173,7 @@ function platformCell(q,p){
           </div>
         </div>
       </div>
-    </details>`;
+    </div>`;
 
   wrapper.appendChild(detail);
   return wrapper;

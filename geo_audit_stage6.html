@@ -299,8 +299,11 @@
   .rec-radio-row label,.rec-check-row label{display:flex;align-items:center;gap:4px;cursor:pointer}
   @media(max-width:640px){.modelb-grid,.modelb-core{grid-template-columns:1fr}}
   .review-block{background:#fff;border:1px solid var(--line);border-radius:7px;margin-top:8px;overflow:hidden}
-  .review-section{border-top:2px solid var(--line);margin-top:10px;padding-top:2px}
-  .review-section-header{font-size:11.5px;font-weight:800;color:var(--muted);padding:8px 10px 4px;display:flex;justify-content:space-between;gap:8px}
+  .review-section{border-top:1px solid var(--line);margin-top:10px}
+  .review-section>summary{list-style:none;cursor:pointer;font-size:11.5px;font-weight:800;color:var(--muted);padding:7px 10px;display:flex;justify-content:space-between;gap:8px;user-select:none}
+  .review-section>summary::-webkit-details-marker{display:none}
+  .review-section>summary::after{content:"▶";font-size:9px;transition:transform .2s}
+  .review-section[open]>summary::after{transform:rotate(90deg)}
   .review-block>summary{list-style:none;cursor:pointer;padding:8px 10px;font-size:11.5px;font-weight:800;color:var(--ink-soft);user-select:none;display:flex;justify-content:space-between;gap:8px}
   .review-block>summary::-webkit-details-marker{display:none}
   .review-body{padding:0 9px 9px}
@@ -1161,8 +1164,8 @@ function platformCell(q,p){
       <div class="citation-list" id="citations_${q.id}_${p.id}">${citationRowsHtml(q.id,p.id,c)}</div>
     </div>
 
-    <div class="review-section">
-      <div class="review-section-header">검토·점수 수정 <span class="review-hint">AI 채점 후 이상 항목만</span></div>
+    <details class="review-section">
+      <summary class="review-section-header">검토·점수 수정 <span class="review-hint">AI 채점 후 이상 항목만</span></summary>
       <div class="review-body">
         ${modelBPanelHtml(q,p,c)}
         <div class="notes">
@@ -1173,7 +1176,7 @@ function platformCell(q,p){
           </div>
         </div>
       </div>
-    </div>`;
+    </details>`;
 
   wrapper.appendChild(detail);
   return wrapper;

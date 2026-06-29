@@ -269,6 +269,27 @@
   .field-block>summary::-webkit-details-marker{display:none}
   .field-content{padding:9px 9px 9px}
   .field-content textarea{width:100%;min-height:86px;border:1px solid var(--line);border-radius:6px;padding:7px 8px;font:11.5px var(--sans);resize:vertical;white-space:pre-wrap;word-break:break-word}
+  .answer-mode-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+  .answer-mode-label{font-size:11px;font-weight:800;color:var(--ink-soft)}
+  .answer-mode-tabs{display:inline-flex;border:1px solid var(--line-strong);border-radius:5px;overflow:hidden;background:#fff}
+  .answer-mode-tabs button{border:0;border-left:1px solid var(--line);background:#fff;color:var(--muted);padding:4px 9px;font-size:10.5px;font-weight:700;cursor:pointer}
+  .answer-mode-tabs button:first-child{border-left:0}
+  .answer-mode-tabs button.active{background:var(--accent-soft);color:var(--accent)}
+  .answer-rendered{min-height:86px;border:1px solid var(--line);border-radius:6px;padding:10px 12px;background:#fff;color:var(--ink);font-size:12px;line-height:1.65;word-break:break-word;overflow-wrap:anywhere}
+  .answer-rendered.empty{display:flex;align-items:center;color:var(--muted);font-style:italic}
+  .answer-rendered h1,.answer-rendered h2,.answer-rendered h3{letter-spacing:0;color:var(--ink);line-height:1.35;break-after:avoid;margin:15px 0 6px}
+  .answer-rendered h1:first-child,.answer-rendered h2:first-child,.answer-rendered h3:first-child{margin-top:0}
+  .answer-rendered h1{font-size:16px}.answer-rendered h2{font-size:14px}.answer-rendered h3{font-size:13px}
+  .answer-rendered p{margin:0 0 8px}.answer-rendered p:last-child{margin-bottom:0}
+  .answer-rendered ul,.answer-rendered ol{margin:5px 0 9px;padding-left:22px}
+  .answer-rendered li{margin:2px 0}.answer-rendered strong{font-weight:800;color:#111827}
+  .answer-rendered blockquote{margin:8px 0;padding:6px 10px;border-left:3px solid var(--line-strong);background:var(--surface);color:var(--ink-soft)}
+  .answer-rendered code{font-family:var(--mono);font-size:.92em;background:#f1f5f9;border-radius:3px;padding:1px 4px}
+  .answer-rendered pre{margin:8px 0;padding:8px 10px;background:#f8fafc;border:1px solid var(--line);border-radius:5px;white-space:pre-wrap;overflow-wrap:anywhere}
+  .answer-rendered pre code{padding:0;background:none}
+  .answer-rendered table{width:100%;border-collapse:collapse;margin:8px 0;font-size:11px}
+  .answer-rendered th,.answer-rendered td{border:1px solid var(--line);padding:5px 7px;text-align:left;vertical-align:top}
+  .answer-rendered th{background:#f8fafc;font-weight:800}.answer-rendered a{color:#2563eb;text-decoration:underline;text-underline-offset:2px}
   .advanced-score-menu{position:relative;flex-shrink:0}
   .advanced-score-menu>summary{list-style:none;width:25px;height:25px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px}
   .advanced-score-menu>summary::-webkit-details-marker{display:none}
@@ -364,7 +385,7 @@
   #printView{display:none;font-family:var(--sans);color:#1a202c;font-size:12px;line-height:1.6}
   .pv-report-title{font-size:18px;font-weight:800;margin:0 0 2px}
   .pv-report-meta{font-size:11px;color:#64748b;margin:0 0 20px}
-  .pv-platform{margin-bottom:32px;page-break-inside:avoid}
+  .pv-platform{margin-bottom:32px;page-break-inside:auto}
   .pv-platform-header{display:flex;align-items:baseline;gap:10px;padding:8px 12px;background:#1e293b;color:#fff;border-radius:6px 6px 0 0;margin-bottom:0}
   .pv-platform-name{font-size:14px;font-weight:800}
   .pv-platform-sub{font-size:11px;color:#94a3b8}
@@ -378,8 +399,22 @@
   .pv-q-status{font-size:10.5px;color:#64748b;font-weight:600}
   .pv-label{font-size:9.5px;font-weight:800;color:#94a3b8;letter-spacing:.08em;text-transform:uppercase;margin:7px 0 2px}
   .pv-prompt{font-size:11.5px;color:#475569;background:#f8fafc;border-left:3px solid #cbd5e1;padding:4px 8px;margin-bottom:4px}
-  .pv-answer{font-size:11.5px;color:#1e293b;white-space:pre-wrap;word-break:break-word;max-height:none;background:#fff;border:1px solid #f1f5f9;border-radius:4px;padding:6px 8px;margin-bottom:4px}
+  .pv-answer{font-size:11px;color:#1e293b;line-height:1.65;word-break:break-word;overflow-wrap:anywhere;max-height:none;background:#fff;border:1px solid #f1f5f9;border-radius:4px;padding:8px 10px;margin-bottom:4px}
   .pv-answer.empty{color:#94a3b8;font-style:italic}
+  .pv-answer h1,.pv-answer h2,.pv-answer h3{letter-spacing:0;line-height:1.35;break-after:avoid;page-break-after:avoid;margin:12px 0 5px}
+  .pv-answer h1:first-child,.pv-answer h2:first-child,.pv-answer h3:first-child{margin-top:0}
+  .pv-answer h1{font-size:15px}.pv-answer h2{font-size:13.5px}.pv-answer h3{font-size:12px}
+  .pv-answer p{margin:0 0 6px}.pv-answer p:last-child{margin-bottom:0}
+  .pv-answer ul,.pv-answer ol{margin:4px 0 7px;padding-left:20px}
+  .pv-answer li{margin:1px 0;break-inside:avoid;page-break-inside:avoid}
+  .pv-answer blockquote{margin:6px 0;padding:4px 8px;border-left:3px solid #cbd5e1;background:#f8fafc;color:#475569}
+  .pv-answer code{font-family:monospace;font-size:.92em;background:#f1f5f9;border-radius:2px;padding:1px 3px}
+  .pv-answer pre{white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0;padding:6px 8px;border:1px solid #e2e8f0;background:#f8fafc}
+  .pv-answer pre code{padding:0;background:none}
+  .pv-answer table{width:100%;border-collapse:collapse;margin:6px 0;font-size:10px}
+  .pv-answer thead{display:table-header-group}.pv-answer tr{break-inside:avoid;page-break-inside:avoid}
+  .pv-answer th,.pv-answer td{border:1px solid #cbd5e1;padding:4px 6px;text-align:left;vertical-align:top}
+  .pv-answer th{background:#f1f5f9;font-weight:800}.pv-answer a{color:#1d4ed8;text-decoration:underline}
   .pv-citations{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
   .pv-cite{font-size:10px;padding:2px 7px;border-radius:999px;background:#f1f5f9;color:#475569;border:1px solid #e2e8f0}
   .pv-cite.official{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}
@@ -407,17 +442,19 @@
   header{padding:16px 20px 14px!important}
   /* ===== NEW SIMPLIFIED UI ===== */
   /* 플랫폼 카드 재설계 */
-  .plat-header-row{display:flex;align-items:center;gap:0;padding:8px 15px}
-  .plat-name-big{font-weight:800;font-size:13px;color:var(--ink);width:90px;flex-shrink:0}
-  .plat-plan-text{font-size:11.5px;color:var(--muted);font-weight:600;width:160px;flex-shrink:0}
+  .plat-header-row{display:grid;grid-template-columns:minmax(220px,1fr) minmax(300px,1.25fr) auto;align-items:center;gap:18px;width:100%;padding:8px 15px}
+  .plat-identity{display:flex;align-items:center;gap:14px;min-width:0}
+  .plat-name-big{font-weight:800;font-size:13px;color:var(--ink);min-width:76px;flex-shrink:0}
+  .plat-plan-text{font-size:11.5px;color:var(--muted);font-weight:600;min-width:0}
   .plat-provider{font-size:11px;color:var(--muted)}
-  .plat-overall-badge{font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--grey-bg);color:var(--grey);white-space:nowrap;margin-left:auto;margin-right:10px;flex-shrink:0}
+  .plat-status-progress{display:flex;align-items:center;justify-content:center;gap:12px;min-width:0}
+  .plat-overall-badge{font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--grey-bg);color:var(--grey);white-space:nowrap;flex-shrink:0}
   .plat-overall-badge.done{background:var(--green-bg);color:var(--green)}
   .plat-overall-badge.partial{background:var(--amber-bg);color:var(--amber)}
-  .plat-progress-row{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);flex:1;padding:0 10px}
+  .plat-progress-row{display:flex;align-items:center;justify-content:center;gap:6px;font-size:11.5px;color:var(--muted);min-width:0}
   .plat-progress-num{font-family:var(--mono);font-weight:800;color:var(--ink);font-size:13px;margin-right:10px}
   .plat-progress-detail{color:var(--muted)}
-  .plat-action-row{display:flex;align-items:center;gap:6px;flex-shrink:0}
+  .plat-action-row{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-shrink:0}
   .plat-action-row .btn-primary{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:4px 12px;font-size:11.5px;font-weight:700;cursor:pointer}
   .plat-action-row .btn-primary:hover{opacity:.88}
   .plat-action-row .btn-secondary{background:#f1f5f9;color:var(--ink-soft);border:1px solid var(--line-strong);border-radius:6px;padding:4px 11px;font-size:11.5px;font-weight:600;cursor:pointer}
@@ -428,6 +465,16 @@
   .plat-action-row .btn-save:disabled{opacity:.4;cursor:not-allowed}
   .pg-arrow{color:var(--muted);font-size:10px;transition:transform .2s;cursor:pointer;margin-left:4px}
   .platform-group[open] .pg-arrow{transform:rotate(90deg)}
+  @media(max-width:900px){
+    .plat-header-row{grid-template-columns:minmax(220px,1fr) auto;gap:8px 14px}
+    .plat-status-progress{grid-column:1/-1;grid-row:2;justify-content:flex-start;padding-top:7px;border-top:1px solid var(--line)}
+  }
+  @media(max-width:640px){
+    .plat-header-row{grid-template-columns:1fr;padding:9px 11px}
+    .plat-identity,.plat-status-progress,.plat-action-row{grid-column:1;justify-content:flex-start}
+    .plat-action-row{grid-row:3;flex-wrap:wrap}
+    .plat-action-row .pg-arrow{margin-left:auto}
+  }
 
   /* 측정 기준 요약 바 */
   .cond-summary-bar{display:flex;align-items:center;gap:8px;padding:7px 12px;background:#f8fafc;border-bottom:1px solid var(--line);font-size:11.5px}
@@ -849,7 +896,6 @@ const SOURCE_TAGS=[
   {id:"review",label:"리뷰·커뮤니티",trust:false},
   {id:"wiki",label:"위키",trust:false},
   {id:"portal",label:"채용·정보 포털",trust:false},
-  {id:"competitor",label:"타기업·경쟁사",trust:false},
   {id:"none",label:"출처 없음/불명",trust:false},
   {id:"unknown",label:"미분류",trust:false}
 ];
@@ -1049,12 +1095,16 @@ function buildPlatformInputs(){
     group.innerHTML=`
       <summary class="plat-summary-wrapper">
         <div class="plat-header-row">
-          <span class="plat-name-big">${p.name}</span>
-          <span class="plat-plan-text">${p.plan} <span class="plat-provider">· ${p.badge}</span></span>
-          <span class="plat-overall-badge" id="platOverall_${p.id}">미평가</span>
-          <div class="plat-progress-row">
-            <span class="plat-progress-num" id="platProgNum_${p.id}">0/${QUESTIONS.length}</span>
-            <span class="plat-progress-detail" id="platProgDetail_${p.id}">답변 0 · 채점 0 · 검토 0</span>
+          <div class="plat-identity">
+            <span class="plat-name-big">${p.name}</span>
+            <span class="plat-plan-text">${p.plan} <span class="plat-provider">· ${p.badge}</span></span>
+          </div>
+          <div class="plat-status-progress">
+            <span class="plat-overall-badge" id="platOverall_${p.id}">미평가</span>
+            <div class="plat-progress-row">
+              <span class="plat-progress-num" id="platProgNum_${p.id}">0/${QUESTIONS.length}</span>
+              <span class="plat-progress-detail" id="platProgDetail_${p.id}">답변 0 · 채점 0 · 검토 0</span>
+            </div>
           </div>
           <div class="plat-action-row">
             <button class="btn-secondary" onclick="event.stopPropagation();copyBatchScoringPrompt('${p.id}',this)" id="batchBtn_${p.id}">일괄 복사</button>
@@ -1159,11 +1209,21 @@ function platformCell(q,p){
   detail.id=`qdetail_${q.id}_${p.id}`;
 
   const be=c.balanceEvidence||{};
+  const answerHasText=!!(c.aiAnswer||'').trim();
   detail.innerHTML=`
     <div class="field-content">
+      <div class="answer-mode-bar">
+        <span class="answer-mode-label">AI 답변</span>
+        <div class="answer-mode-tabs" role="tablist" aria-label="답변 표시 방식">
+          <button type="button" id="answerEditTab_${q.id}_${p.id}" class="${answerHasText?'':'active'}" onclick="setAnswerMode('${q.id}','${p.id}','edit')">편집</button>
+          <button type="button" id="answerPreviewTab_${q.id}_${p.id}" class="${answerHasText?'active':''}" onclick="setAnswerMode('${q.id}','${p.id}','preview')">미리보기</button>
+        </div>
+      </div>
       <textarea id="answer_${q.id}_${p.id}"
         oninput="this.dataset.userEdited='1';onAnswerInput('${q.id}','${p.id}',this.value)"
-        placeholder="AI 답변을 붙여넣으세요. 출처 섹션 포함 권장.">${escapeH(c.aiAnswer)}</textarea>
+        placeholder="AI 답변을 붙여넣으세요. 출처 섹션 포함 권장."
+        ${answerHasText?'hidden':''}>${escapeH(c.aiAnswer)}</textarea>
+      <div id="answerPreview_${q.id}_${p.id}" class="answer-rendered${answerHasText?'':' empty'}" ${answerHasText?'':'hidden'}>${answerHasText?renderAnswerMarkup(c.aiAnswer):'답변을 입력하면 보기 좋은 서식으로 표시됩니다.'}</div>
       <div class="citation-list" id="citations_${q.id}_${p.id}">${citationRowsHtml(q.id,p.id,c)}</div>
     </div>
 
@@ -1300,61 +1360,12 @@ function classifySource(url){
   const host=normalizedSourceHost(url);if(!host)return"unknown";
   const userType=userDomainTypeForHost(host);if(userType)return userType;
   const hit=list=>list.some(d=>host===d||host.endsWith("."+d));
-
-  // 공식 (우미건설 채널)
-  if(hit(["woomi.com","woomi.co.kr","woomi.recruiter.co.kr","lynn.co.kr","lynnstrauss.com"])
-    ||url.includes("youtube.com/@woomi")||url.includes("youtube.com/woomi")
-    ||url.includes("blog.naver.com/lynnblog")||url.includes("blog.naver.com/woomi")
-    ||url.includes("instagram.com/woomi_lynn")||url.includes("instagram.com/woomi"))return"official";
-
-  // 타기업·경쟁사 (건설·시행사)
-  if(hit([
-    "samsungcnt.com","gsconst.co.kr","hdcivl.co.kr","daelim.co.kr",
-    "hyundai-enc.com","posco-e.com","sk-eandckorea.com","lotte-enc.com",
-    "hanwha.com","taeyoungenc.com","hoban.co.kr","doosan-enerbility.com",
-    "daewooconstruction.com","ssangyong.co.kr","kolon.com","hanil.com",
-    "hdc.co.kr","hl-deco.com","chunwoo.co.kr","dongwon-systems.com",
-    "ipark.com","hillstateclub.com","e-lotte.com","prugio.com"
-  ]))return"competitor";
-
-  // 인증·정부 — .go.kr/.or.kr 자동 인식
-  if(host.endsWith(".go.kr")||host==="go.kr")return"cert";
-  if(hit(["khug.or.kr","cak.or.kr","kisrating.com","kfinco.co.kr","kcmi.re.kr",
-          "kicpa.or.kr","kab.or.kr","kosha.or.kr","kotra.or.kr","kca.kr",
-          "kiso.or.kr","kaia.or.kr","kbiz.or.kr","greenbuilding.re.kr",
-          "seouldesignweek.or.kr","seoul-designweek.or.kr"]))return"cert";
-  if(host.endsWith(".or.kr"))return"cert";
-
-  // 언론·기사
-  if(hit(["mk.co.kr","hankyung.com","dnews.co.kr","yna.co.kr","chosun.com",
-          "donga.com","joongang.co.kr","joins.com","heraldcorp.com","mt.co.kr",
-          "edaily.co.kr","fnnews.com","asiae.co.kr","newsis.com",
-          "news1.kr","newspim.com","sedaily.com","inews24.com","etnews.com",
-          "zdnet.co.kr","bloter.net","ddaily.co.kr","newsvalue.kr",
-          "newsspace.kr","businesspost.co.kr","bizwatch.co.kr","thebell.co.kr",
-          "tf.co.kr","tfnews.co.kr","consline.co.kr","ebn.co.kr",
-          "moneys.co.kr","econovill.com","nate.com","news.daum.net"]))return"press";
-  if(/^(news|press|daily|times|journal|herald|post|report)/.test(host.split(".")[0]))return"press";
-
-  // 리뷰·커뮤니티
-  if(hit(["teamblind.com","blind.com","jobplanet.co.kr","jobplanet.com",
-          "glassdoor.com","indeed.com","credejob.com","wanted.co.kr",
-          "tistory.com","brunch.co.kr","instiz.net","dcinside.com",
-          "fmkorea.com","clien.net","ppomppu.co.kr","reddit.com","quora.com"]))return"review";
-  if(url.includes("blog.naver.com")||url.includes("cafe.naver.com"))return"review";
-  if(hit(["youtube.com","instagram.com","facebook.com","twitter.com","x.com",
-          "linkedin.com","tiktok.com"]))return"review";
-
-  // 위키
-  if(hit(["namu.wiki","wikipedia.org","wikimedia.org"]))return"wiki";
-
-  // 채용·정보 포털
-  if(hit(["saramin.co.kr","incruit.com","catch.co.kr","jobkorea.co.kr",
-          "sankun.com","dealmatch.kr","conwor.co.kr","worker.co.kr",
-          "jasoseol.com","linkareer.com","jumpit.io","rallit.com",
-          "albamon.com","alba.co.kr","deepsearch.com","remember.co.kr",
-          "naver.com","daum.net","me2.do","bit.ly","han.gl","url.kr"]))return"portal";
-
+  if(hit(["woomi.com","woomi.co.kr","woomi.recruiter.co.kr","lynn.co.kr"])||url.includes("youtube.com/@woomi")||url.includes("blog.naver.com/lynnblog")||url.includes("instagram.com/woomi_lynn"))return"official";
+  if(hit(["molit.go.kr","ftc.go.kr","khug.or.kr","kfinco.co.kr","cak.or.kr","go.kr"]))return"cert";
+  if(hit(["mk.co.kr","hankyung.com","dnews.co.kr","yna.co.kr","chosun.com","donga.com","joongang.co.kr"]))return"press";
+  if(hit(["teamblind.com","jobplanet.co.kr","jobplanet.com"]))return"review";
+  if(hit(["namu.wiki","wikipedia.org"]))return"wiki";
+  if(hit(["saramin.co.kr","incruit.com","catch.co.kr","jobkorea.co.kr","jasoseol.com","consline.co.kr","sankun.com","dealmatch.kr"]))return"portal";
   return"unknown";
 }
 // ChatGPT가 출력하는 한국어/영어 사이트명 → 도메인 매핑
@@ -1370,12 +1381,12 @@ const SITE_NAME_MAP={
   "헤럴드경제":"heraldcorp.com","머니투데이":"mt.co.kr","이데일리":"edaily.co.kr",
   "파이낸셜뉴스":"fnnews.com","아시아경제":"asiae.co.kr","뉴시스":"newsis.com",
   // 리뷰·커뮤니티
-  "블라인드":"teamblind.com","잡플래닛":"jobplanet.co.kr","잡플레닛":"jobplanet.co.kr",
+  "블라인드":"teamblind.com","blind":"teamblind.com","잡플래닛":"jobplanet.co.kr","잡플레닛":"jobplanet.co.kr","jobplanet":"jobplanet.co.kr",
   "크레딧잡":"credejob.com","잡코리아":"jobkorea.co.kr","사람인":"saramin.co.kr",
   // 건설 특화 취업정보
   "건설워커":"conwor.co.kr","건설 워커":"conwor.co.kr","건설워커 랭킹":"conwor.co.kr",
   // 포털·취업정보
-  "자소설닷컴":"jasoseol.com","자소설":"jasoseol.com","산군":"sankun.com",
+  "자소설닷컴":"jasoseol.com","자소설":"jasoseol.com","콘스라인":"consline.co.kr","consline":"consline.co.kr","산군":"sankun.com",
   "딜매치":"dealmatch.kr","인크루트":"incruit.com","캐치":"catch.co.kr",
   // SNS
   "인스타그램":"instagram.com","유튜브":"youtube.com","페이스북":"facebook.com",
@@ -1387,7 +1398,12 @@ function syncLegacySources(c){
   autoSuggestSourceType(c);
 }
 function autoSuggestSourceType(c){
-  const list=c.citedSources||[];
+  const byDomain=new Map();
+  (c.citedSources||[]).forEach(source=>{
+    const host=normalizedSourceHost(source.url)||source.url;
+    if(host&&!byDomain.has(host))byDomain.set(host,source);
+  });
+  const list=[...byDomain.values()];
   if(!list.length)return;
   const trusted=list.filter(s=>SOURCE_TAGS.find(t=>t.id===s.type)?.trust).length;
   if(trusted/list.length>=0.5&&!c.source_type)c.source_type="trusted";
@@ -1400,9 +1416,33 @@ function autoSuggestSourceType(c){
 const _answerDebounce={};
 function onAnswerInput(qid,pid,value){
   DATA[key(qid,pid)].aiAnswer=value;
+  updateAnswerPreview(qid,pid,value);
   markDirty(pid);
   clearTimeout(_answerDebounce[qid+'__'+pid]);
   _answerDebounce[qid+'__'+pid]=setTimeout(()=>analyzeSources(qid,pid,true),800);
+}
+
+function setAnswerMode(qid,pid,mode){
+  const editor=document.getElementById(`answer_${qid}_${pid}`);
+  const preview=document.getElementById(`answerPreview_${qid}_${pid}`);
+  const editTab=document.getElementById(`answerEditTab_${qid}_${pid}`);
+  const previewTab=document.getElementById(`answerPreviewTab_${qid}_${pid}`);
+  if(!editor||!preview)return;
+  const showPreview=mode==='preview';
+  editor.hidden=showPreview;
+  preview.hidden=!showPreview;
+  editTab?.classList.toggle('active',!showPreview);
+  previewTab?.classList.toggle('active',showPreview);
+  if(showPreview)updateAnswerPreview(qid,pid,editor.value);
+  else editor.focus();
+}
+
+function updateAnswerPreview(qid,pid,value){
+  const preview=document.getElementById(`answerPreview_${qid}_${pid}`);
+  if(!preview)return;
+  const hasText=!!String(value||'').trim();
+  preview.classList.toggle('empty',!hasText);
+  preview.innerHTML=hasText?renderAnswerMarkup(value):'답변을 입력하면 보기 좋은 서식으로 표시됩니다.';
 }
 
 /* ── 플랫폼별 인용 파서 ── */
@@ -1432,21 +1472,50 @@ function parseCitationsByStyle(text, style){
   return urls;
 }
 
+function citationRelevantText(text){
+  const raw=String(text||'');
+  const marker=raw.lastIndexOf('\n완료\n');
+  if(marker>=0&&/(?:웹 검색됨|결과\s*\d+개)/.test(raw.slice(0,marker)))return raw.slice(marker+4).trim();
+  const summaryMarker=raw.lastIndexOf('수집한 정보를 바탕으로');
+  if(summaryMarker>=0&&/(?:웹 검색됨|결과\s*\d+개)/.test(raw.slice(0,summaryMarker)))return raw.slice(summaryMarker).trim();
+  return raw;
+}
+
+function dedupeCitationUrls(values){
+  const unique=new Map();
+  values.forEach(raw=>{
+    try{
+      const source=String(raw||'').trim();if(!source)return;
+      const parsed=new URL(source.replace(/[가-힣]/g,ch=>encodeURIComponent(ch)));
+      parsed.hash='';
+      const host=parsed.hostname.toLowerCase().replace(/^www\./,'');
+      const path=(parsed.pathname||'/').replace(/\/+$/,'')||'/';
+      const key=host+path+parsed.search;
+      if(!unique.has(key))unique.set(key,{url:source,host,isRoot:path==='/'});
+    }catch(e){}
+  });
+  const hostsWithDetail=new Set([...unique.values()].filter(item=>!item.isRoot).map(item=>item.host));
+  return [...unique.values()]
+    .filter(item=>!(item.isRoot&&hostsWithDetail.has(item.host)))
+    .map(item=>item.url);
+}
+
 function analyzeSources(qid,pid,silent=false){
   const c=DATA[key(qid,pid)];if(!c)return;
   const text=c.aiAnswer||'';
+  const sourceText=citationRelevantText(text);
   const p=PLATFORMS.find(x=>x.id===pid)||{};
   // 플랫폼 전용 파서 (방법0 — style 기반)
-  const styleUrls=parseCitationsByStyle(text,p.citationStyle||'');
+  const styleUrls=parseCitationsByStyle(sourceText,p.citationStyle||'');
   // 방법1: 마크다운 인라인 링크 [텍스트](URL) — Claude·Perplexity 형식
-  const mdUrls=(text.match(/\]\((https?:\/\/[^)]+)\)/g)||[])
+  const mdUrls=(sourceText.match(/\]\((https?:\/\/[^)]+)\)/g)||[])
     .map(m=>m.slice(2,-1)).map(u=>u.replace(/[.,;:!?]+$/,""));
   // 방법2: 완전한 URL (https://...)
-  const fullUrls=(text.match(/https?:\/\/[^\s<>"'\)\]]+/g)||[]).map(u=>u.replace(/[.,;:!?]+$/,""));
+  const fullUrls=(sourceText.match(/https?:\/\/[^\s<>"'\)\]]+/g)||[]).map(u=>u.replace(/[.,;:!?]+$/,""));
   // 방법3: 도메인만 있는 줄 (molit.go.kr, - teamblind.com 등) — ChatGPT 소스 패널 형식
   // 앞의 불릿(-·•*) 및 공백 제거 후 도메인 패턴 매칭
   const domainRe=/^([a-z0-9-]+\.)+[a-z]{2,}(\/[^\s]*)?$/i;
-  const domainUrls=text.split(/\n/).map(l=>l.trim().replace(/^[-•·*\s]+/,"").trim())
+  const domainUrls=sourceText.split(/\n/).map(l=>l.trim().replace(/^[-•·*\s]+/,"").trim())
     .filter(l=>l&&!l.startsWith("http")&&domainRe.test(l))
     .map(d=>"https://"+d);
   // 방법4: 한국어·영문 사이트명 — 전체 텍스트 인라인 키워드 스캔 (줄 구분 없음)
@@ -1456,36 +1525,24 @@ function analyzeSources(qid,pid,silent=false){
   const _matchedDomains=new Set();
   for(const name of _sortedKeys){
     if(name.length<3)continue;
-    if(text.includes(name)){
+    if(sourceText.toLowerCase().includes(name.toLowerCase())){
       const domain=SITE_NAME_MAP[name];
       if(!_matchedDomains.has(domain)){_matchedDomains.add(domain);nameUrls.push("https://"+domain);}
     }
   }
   // 방법5: www. 인라인 도메인 — "www.jobplanet.co.kr우미건설..." 형식
-  const wwwUrls=(text.match(/www\.[a-z0-9\-]+(?:\.[a-z0-9\-]+)+(?:\/[^\s가-힣\]\)<>"']*)?/gi)||[])
+  const wwwUrls=(sourceText.match(/www\.[a-z0-9\-]+(?:\.[a-z0-9\-]+)+(?:\/[^\s가-힣\]\)<>"']*)?/gi)||[])
     .map(u=>"https://"+u.replace(/[.,;:!?]+$/,""))
     .filter(u=>{try{const tld=new URL(u).hostname.split('.').pop();return/^[a-z]+$/i.test(tld);}catch(e){return false;}});
   // 방법6: www. 없는 베어 도메인 — "jasoseol.com우미와..." 형식
   // 알려진 TLD로 끝나는 도메인만 인식 (오인식 방지)
   const knownTld=/\.(?:com|net|org|co\.kr|kr|go\.kr|or\.kr|re\.kr)(?:\/[^\s가-힣\]\)<>"']*)?/i;
-  const bareUrls=(text.match(/[a-z][a-z0-9\-]*\.(?:com|net|org|co\.kr|kr|go\.kr|or\.kr|re\.kr)(?:\/[^\s가-힣\]\)<>"']*)?/gi)||[])
+  const bareUrls=(sourceText.match(/[a-z][a-z0-9\-]*\.(?:com|net|org|co\.kr|kr|go\.kr|or\.kr|re\.kr)(?:\/[^\s가-힣\]\)<>"']*)?/gi)||[])
     .map(u=>"https://"+u.replace(/[.,;:!?]+$/,""))
     .filter(u=>{try{const h=new URL(u).hostname;return!h.startsWith("www.")&&/^[a-z]+$/i.test(h.split('.').pop());}catch(e){return false;}});
-  // 도메인 기준 중복 제거 — 같은 사이트의 여러 페이지는 하나로
+  // 같은 URL만 제거한다. 같은 사이트라도 실제로 인용한 페이지가 다르면 각각 유지한다.
   const allUrls=[...styleUrls,...mdUrls,...fullUrls,...domainUrls,...nameUrls,...wwwUrls,...bareUrls];
-  const seenDomains=new Map();
-  allUrls.forEach(u=>{
-    try{
-      // 인코딩된 한국어 URL 처리: encodeURI로 안전하게 변환 후 파싱
-      const safeU=u.replace(/[가-힣]/g,c=>encodeURIComponent(c));
-      const host=new URL(safeU).hostname.toLowerCase().replace(/^www\./,"");
-      if(host&&!seenDomains.has(host))seenDomains.set(host,u);
-    }catch(e){
-      // URL 파싱 실패 시 그냥 추가
-      if(!seenDomains.has(u))seenDomains.set(u,u);
-    }
-  });
-  const urls=[...seenDomains.values()];
+  const urls=dedupeCitationUrls(allUrls);
   const previous=new Map((c.citedSources||[]).map(s=>[s.url,s.type]));
   c.citedSources=urls.length?urls.map(url=>({url,type:previous.get(url)||classifySource(url)})):[];
   syncLegacySources(c);markDirty(pid);refreshAll();
@@ -1609,14 +1666,7 @@ async function loadReportData(reportId){
     (out.rows||[]).forEach(r=>{
       const k=key(r.questionId,r.platform);if(!DATA[k])return;
       const cited=(Array.isArray(r.citedSources)?r.citedSources.filter(s=>s&&typeof s==='object'):[])
-        .map(s=>{
-          // 1순위: 사용자 정의 규칙
-          const userType=userDomainTypeForUrl(s.url||'');
-          if(userType)return{...s,type:userType};
-          // 2순위: 미분류(unknown/없음)이면 classifySource 재실행
-          if(!s.type||s.type==='unknown')return{...s,type:classifySource(s.url||'')};
-          return s;
-        });
+        .map(s=>{const type=userDomainTypeForUrl(s.url||'');return type?{...s,type}:s;});
       const hasAnswer=!!(r.answer&&r.answer.trim());
       Object.assign(DATA[k],{
         pre:toScore(r.presence),acc:toScore(r.accuracy),fav:toScore(r.balance),src:toScore(r.source),
@@ -2082,11 +2132,15 @@ function printReport(){
       const scoreItems=dims.map(d=>c[d.k]!=null?`<span class="pv-score-item"><b>${d.n}</b> ${c[d.k]}</span>`:'').filter(Boolean).join('');
 
       // 인용 출처 배지
-      const citeBadges=citations.map(s=>{
-        const cls=s.type==='official'?'official':s.type==='press'?'press':s.type==='review'?'review':'';
+      const citeGroups=new Map();
+      citations.forEach(s=>{
         const label=s.url||s.type||'출처';
         const short=label.replace(/^https?:\/\/(www\.)?/,'').split('/')[0];
-        return `<span class="pv-cite ${cls}">${escapeH(short)}</span>`;
+        const prev=citeGroups.get(short)||{count:0,type:s.type};prev.count++;citeGroups.set(short,prev);
+      });
+      const citeBadges=[...citeGroups.entries()].map(([short,item])=>{
+        const cls=item.type==='official'?'official':item.type==='press'?'press':item.type==='review'?'review':'';
+        return `<span class="pv-cite ${cls}">${escapeH(short)}${item.count>1?' ×'+item.count:''}</span>`;
       }).join('');
 
       html+=`<div class="pv-q">
@@ -2100,7 +2154,7 @@ function printReport(){
   <div class="pv-prompt">${escapeH(q.prompt)}</div>
   <div class="pv-label">AI 답변</div>
   ${answer
-    ?`<div class="pv-answer">${escapeH(answer)}</div>`
+    ?`<div class="pv-answer">${renderAnswerMarkup(answer)}</div>`
     :`<div class="pv-answer empty">미입력</div>`
   }
   ${citations.length?`<div class="pv-label">인용 출처</div><div class="pv-citations">${citeBadges}</div>`:''}
@@ -2330,6 +2384,80 @@ function buildSourceKPI(){
 /* =====================================================================
    유틸
 ===================================================================== */
+function renderAnswerInline(value){
+  const codeTokens=[];
+  let text=escapeH(String(value||''));
+  text=text.replace(/`([^`\n]+)`/g,(_,code)=>{
+    const token=`@@CODE${codeTokens.length}@@`;
+    codeTokens.push(`<code>${code}</code>`);
+    return token;
+  });
+  text=text.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,(_,label,url)=>`<a href="${url.replace(/"/g,'&quot;')}" target="_blank" rel="noopener">${label}</a>`);
+  text=text.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+  text=text.replace(/__([^_]+)__/g,'<strong>$1</strong>');
+  text=text.replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<em>$2</em>');
+  codeTokens.forEach((html,i)=>{text=text.replace(`@@CODE${i}@@`,html);});
+  return text;
+}
+
+function renderAnswerMarkup(value){
+  const lines=String(value||'').replace(/\r\n?/g,'\n').split('\n');
+  const html=[];
+  let listType='';
+  let paragraph=[];
+  const sectionLabels=/^(결론|요약|장점|단점|아쉬운 점|추천 대상|주의할 점|긍정적인 요소|위험요인|전망|제 평가|복지|조직 분위기|워라밸 평가|재무 상태는 어떤가\?|위험요인은 없을까\?|이런 사람에게 추천)$/;
+  const closeList=()=>{if(listType){html.push(`</${listType}>`);listType='';}};
+  const flushParagraph=()=>{
+    if(!paragraph.length)return;
+    html.push(`<p>${paragraph.map(renderAnswerInline).join('<br>')}</p>`);
+    paragraph=[];
+  };
+  const openList=type=>{
+    flushParagraph();
+    if(listType!==type){closeList();html.push(`<${type}>`);listType=type;}
+  };
+
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i];
+    const trimmed=line.trim();
+
+    if(/^```/.test(trimmed)){
+      flushParagraph();closeList();
+      const code=[];
+      for(i++;i<lines.length&&!/^```/.test(lines[i].trim());i++)code.push(lines[i]);
+      html.push(`<pre><code>${escapeH(code.join('\n'))}</code></pre>`);
+      continue;
+    }
+
+    const next=lines[i+1]||'';
+    if(trimmed.includes('|')&&/^\s*\|?\s*:?-{3,}/.test(next)){
+      flushParagraph();closeList();
+      const cells=s=>s.trim().replace(/^\||\|$/g,'').split('|').map(v=>v.trim());
+      const heads=cells(line);
+      const rows=[];
+      i+=2;
+      while(i<lines.length&&lines[i].trim().includes('|')){rows.push(cells(lines[i]));i++;}
+      i--;
+      html.push(`<table><thead><tr>${heads.map(v=>`<th>${renderAnswerInline(v)}</th>`).join('')}</tr></thead><tbody>${rows.map(row=>`<tr>${row.map(v=>`<td>${renderAnswerInline(v)}</td>`).join('')}</tr>`).join('')}</tbody></table>`);
+      continue;
+    }
+
+    if(!trimmed){flushParagraph();closeList();continue;}
+    const heading=trimmed.match(/^(#{1,3})\s+(.+)$/);
+    if(heading){flushParagraph();closeList();const level=heading[1].length;html.push(`<h${level}>${renderAnswerInline(heading[2])}</h${level}>`);continue;}
+    if(sectionLabels.test(trimmed)){flushParagraph();closeList();html.push(`<h3>${renderAnswerInline(trimmed)}</h3>`);continue;}
+    const unordered=trimmed.match(/^[-+*]\s+(.+)$/);
+    if(unordered){openList('ul');html.push(`<li>${renderAnswerInline(unordered[1])}</li>`);continue;}
+    const ordered=trimmed.match(/^\d+[.)]\s+(.+)$/);
+    if(ordered){openList('ol');html.push(`<li>${renderAnswerInline(ordered[1])}</li>`);continue;}
+    const quote=trimmed.match(/^>\s?(.*)$/);
+    if(quote){flushParagraph();closeList();html.push(`<blockquote>${renderAnswerInline(quote[1])}</blockquote>`);continue;}
+    closeList();paragraph.push(trimmed);
+  }
+  flushParagraph();closeList();
+  return html.join('');
+}
+
 function escapeH(s){return(s||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
 function escapeA(s){return escapeH(s).replace(/"/g,"&quot;");}
 function toScore(v){return v===""||v===null||v===undefined?null:Number(v);}

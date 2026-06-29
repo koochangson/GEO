@@ -1438,6 +1438,7 @@ function sourceHint(c){
   return trusted&&!weak?"신뢰출처 확인":trusted&&weak?"출처 혼재":"취약출처 중심";
 }
 function citationRowsHtml(qid,pid,c){
+  if(!(c.aiAnswer||'').trim())return'';
   if(!c.citedSources?.length)return`<span class="kpi-sub">분석된 출처가 없습니다.</span>`;
   return c.citedSources.map((s,i)=>`<div class="citation-item"><a class="citation-url" href="${escapeA(s.url||"#")}" target="_blank" rel="noopener" title="${escapeA(s.url||"출처 없음")}">${escapeH(s.url||"출처 없음")}</a><select onchange="setSourceType('${qid}','${pid}',${i},this.value)">${SOURCE_TAGS.map(t=>`<option value="${t.id}" ${s.type===t.id?"selected":""}>${t.label}</option>`).join("")}</select><button class="citation-remove" onclick="removeCitation('${qid}','${pid}',${i})" title="삭제">×</button></div>`).join("");
 }

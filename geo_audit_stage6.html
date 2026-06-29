@@ -1,0 +1,1988 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>우미건설 GEO 채용평판 AI 감사 도구</title>
+<style>
+  :root{
+    --ink:#16202e; --ink-soft:#2a3950; --surface:#ffffff; --bg:#e9edf3;
+    --panel:#f4f6fa; --line:#cdd6e2; --line-strong:#9fadc1; --muted:#5c6a7e;
+    --accent:#1f5fa6; --accent-soft:#e7f0f9;
+    --red:#b5341f; --red-bg:#fbe9e6;
+    --amber:#b8770b; --amber-bg:#fbf1dd;
+    --green:#1d7a44; --green-bg:#e4f3ea;
+    --grey:#8b97a8; --grey-bg:#eef1f5;
+    --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",Segoe UI,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 20px 80px}
+
+  /* ---- header ---- */
+  header{background:var(--ink);color:#fff;margin:0;padding:26px 20px 22px;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:26px 26px;border-bottom:3px solid var(--accent)}
+  .head-inner{max-width:1080px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:#9fc1e6;text-transform:uppercase;margin:0 0 6px}
+  h1{font-size:23px;font-weight:800;margin:0;letter-spacing:-.01em}
+  .sub{color:#aebccf;font-size:13px;margin:7px 0 0;max-width:560px}
+  .gauge{text-align:right;min-width:190px}
+  .gauge .num{font-family:var(--mono);font-size:38px;font-weight:700;line-height:1}
+  .gauge .den{font-size:16px;color:#8ea3bd}
+  .gauge .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:#9fc1e6;text-transform:uppercase;margin-top:4px}
+  .gauge .bar{height:6px;background:rgba(255,255,255,.15);border-radius:3px;margin-top:8px;overflow:hidden}
+  .gauge .bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+
+  /* ---- toolbar ---- */
+  .toolbar{background:var(--ink-soft);margin:0;padding:10px 20px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .toolbar .sp{flex:1}
+  button.tb{background:transparent;color:#cdd9e8;border:1px solid #41526b;border-radius:6px;padding:7px 13px;font-size:12.5px;font-family:var(--sans);cursor:pointer;font-weight:600}
+  button.tb:hover{background:#26344a;color:#fff}
+  button.tb.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  button.tb.primary:hover{background:#1a528f}
+  button.tb.warn:hover{background:#5a2118;border-color:#7d2c1f;color:#fff}
+  button.tb:disabled{opacity:.4;cursor:not-allowed}
+  .tb-report-info{display:flex;align-items:center;gap:8px;color:#c8d8ea;font-size:13px;font-weight:700}
+  .tb-report-id{font-family:var(--mono);font-size:13px;color:#fff;font-weight:800}
+  .tb-status-badge{font-family:var(--mono);font-size:10.5px;padding:2px 9px;border-radius:10px;background:rgba(29,122,68,.7);color:#6ef0a0;font-weight:700}
+  .tb-status-badge.closed{background:rgba(181,52,31,.6);color:#f8b4a8}
+  .tb-status-badge.reopened{background:rgba(184,119,11,.6);color:#fde28a}
+  .tb-status-badge.loading{background:rgba(100,120,150,.4);color:#aebccf}
+  .network-state{font-family:var(--mono);font-size:10.5px;color:#8ea3bd;white-space:nowrap}
+
+  /* ---- history panel ---- */
+  .history-panel{background:#1c2a3d;margin:0;padding:10px 20px;display:none;gap:8px;align-items:center;flex-wrap:wrap;border-top:1px solid #2d4160}
+  .history-panel.open{display:flex}
+  .history-panel-label{color:#9fc1e6;font-size:11.5px;font-weight:700;white-space:nowrap}
+  .history-panel select{border-radius:6px;border:1px solid #41526b;background:#1c2a3d;color:#cdd9e8;padding:6px 9px;font-size:12px;flex:1;max-width:280px}
+
+  /* ---- status banners ---- */
+  .locked-banner{display:none;max-width:1080px;margin:12px auto 0;padding:10px 14px;border-radius:7px;background:var(--red-bg);color:var(--red);font-size:12px;font-weight:700}
+  .locked-banner.show{display:block}
+  .reopened-banner{display:none;max-width:1080px;margin:12px auto 0;padding:10px 14px;border-radius:7px;background:var(--amber-bg);color:var(--amber);font-size:12px;font-weight:700}
+  .reopened-banner.show{display:block}
+
+  /* ---- read-only lock ---- */
+  body.report-locked .platform-group button.save-plat-btn,
+  body.report-locked .platform-body button:not(.read-only-action):not(.copy-btn-small),
+  body.report-locked .platform-body textarea,
+  body.report-locked .platform-body select,
+  body.report-locked .platform-body input{pointer-events:none;opacity:.42}
+
+  section{margin-top:26px}
+  .sec-head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+  .sec-no{font-family:var(--mono);font-size:12px;font-weight:700;color:#fff;background:var(--accent);border-radius:4px;padding:2px 7px}
+  .sec-title{font-size:16px;font-weight:800;margin:0}
+  .sec-desc{color:var(--muted);font-size:12.5px;margin:0 0 0 auto;text-align:right;white-space:nowrap}
+  .section-kind{font-size:10px;font-weight:800;padding:2px 7px;border-radius:4px;letter-spacing:0}
+  .section-kind.input{background:var(--accent-soft);color:var(--accent)}
+  .section-kind.result{background:var(--green-bg);color:var(--green)}
+  .criteria-panel>summary{list-style:none;cursor:pointer;user-select:none}
+  .criteria-panel>summary::-webkit-details-marker{display:none}
+  .criteria-panel .criteria-hint{margin-left:auto;color:var(--accent);font-size:11px;font-weight:700}
+  .criteria-panel[open] .criteria-hint{color:var(--muted)}
+  .criteria-body{padding-top:2px}
+  @media(max-width:900px){.sec-head{flex-wrap:wrap}.sec-desc{width:100%;max-width:none;margin:2px 0 0;text-align:left;white-space:normal;overflow-wrap:anywhere}}
+
+  /* ---- rubric / legend ---- */
+  .legend{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .chip{font-size:11.5px;font-family:var(--mono);padding:3px 9px;border-radius:20px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+  .c-red{background:var(--red-bg);color:var(--red)} .c-red .dot{background:var(--red)}
+  .c-amber{background:var(--amber-bg);color:var(--amber)} .c-amber .dot{background:var(--amber)}
+  .c-green{background:var(--green-bg);color:var(--green)} .c-green .dot{background:var(--green)}
+  .c-grey{background:var(--grey-bg);color:var(--grey)} .c-grey .dot{background:var(--grey)}
+  .rubric{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:12.5px}
+  .rubric th,.rubric td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  .rubric th{background:var(--panel);font-weight:700;font-size:11.5px;color:var(--ink-soft)}
+  .rubric td:first-child{font-weight:700;white-space:nowrap;background:#fafbfd}
+  .rubric .sc{font-family:var(--mono);font-weight:700}
+
+  /* ---- overview matrix ---- */
+  .matrix-scroll{overflow-x:auto}
+  table.matrix{border-collapse:collapse;background:var(--surface);border:1px solid var(--line);min-width:640px;width:100%}
+  table.matrix th,table.matrix td{border:1px solid var(--line);text-align:center;padding:0}
+  table.matrix thead th{background:var(--panel);font-size:11.5px;padding:9px 6px;color:var(--ink-soft);font-weight:700}
+  table.matrix th.qh{text-align:left;padding:9px 10px;font-size:12px;max-width:230px;font-weight:600}
+  .cell{width:100%;height:46px;border:none;background:var(--grey-bg);color:var(--grey);font-family:var(--mono);font-weight:700;font-size:14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1}
+  .cell small{font-size:9px;font-weight:600;opacity:.8;letter-spacing:.04em}
+  .cell:hover{outline:2px solid var(--accent);outline-offset:-2px}
+  .cell.red{background:var(--red-bg);color:var(--red)}
+  .cell.amber{background:var(--amber-bg);color:var(--amber)}
+  .cell.green{background:var(--green-bg);color:var(--green)}
+  table.matrix tfoot td,table.matrix tfoot th{background:#fafbfd;font-family:var(--mono);font-weight:700;font-size:12.5px;padding:7px}
+  table.matrix tfoot th{text-align:right;font-family:var(--sans);font-size:11.5px;color:var(--muted)}
+
+  /* ---- platform group ---- */
+  .platform-group{background:var(--surface);border:1px solid var(--line-strong);border-radius:9px;margin-bottom:12px;overflow:hidden}
+  .platform-group>summary{list-style:none;cursor:pointer;padding:13px 15px;display:flex;align-items:center;gap:10px;font-weight:800;user-select:none}
+  .platform-group>summary::-webkit-details-marker{display:none}
+  .pg-spacer{flex:1}
+  .pg-arrow{color:var(--muted);font-size:10px;transition:transform .2s;flex-shrink:0}
+  .platform-group[open]>summary .pg-arrow{transform:rotate(90deg)}
+  .platform-body{border-top:1px solid var(--line);background:var(--panel);padding:12px}
+  .workflow-panel{background:#fff;border:1px solid var(--line);border-radius:8px;padding:11px 12px;margin-bottom:10px}
+  .workflow-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+  .workflow-title b{font-size:12.5px;color:var(--ink)}
+  .workflow-title span{font-size:10.5px;color:var(--muted)}
+  .workflow-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+  .workflow-step{border:1px solid var(--line);border-radius:7px;padding:7px 8px;background:var(--panel);min-height:48px}
+  .workflow-step strong{display:block;font-size:11px;color:var(--ink-soft);margin-bottom:3px}
+  .workflow-step span{display:block;font-size:10px;color:var(--muted);line-height:1.35}
+  .workflow-status{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .wf-chip{font-size:10px;font-weight:800;border-radius:999px;padding:3px 8px;background:var(--grey-bg);color:var(--grey)}
+  .wf-chip.done{background:var(--green-bg);color:var(--green)}
+  .wf-chip.warn{background:var(--amber-bg);color:var(--amber)}
+  @media(max-width:860px){.workflow-steps{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.workflow-steps{grid-template-columns:1fr}}
+
+  /* ---- platform save button ---- */
+  .save-plat-btn{background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent);border-radius:6px;padding:5px 13px;font-size:11.5px;font-weight:700;cursor:pointer;flex-shrink:0;transition:background .15s}
+  .save-plat-btn:hover{background:var(--accent);color:#fff}
+  .save-plat-btn.dirty{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .save-plat-btn:disabled{opacity:.4;cursor:not-allowed}
+
+  /* ---- condition toggle (collapsed) ---- */
+  .condition-toggle{margin-bottom:10px}
+  .condition-toggle>summary{list-style:none;cursor:pointer;padding:6px 0 4px;font-size:11px;color:var(--muted);font-weight:700;user-select:none}
+  .condition-toggle>summary::-webkit-details-marker{display:none}
+  /* 유료/무료는 플랫폼 ID에 내장 → 4열(계정·메모리·모델·측정일) */
+  .condition-row{display:grid;grid-template-columns:1fr 1fr 1.2fr 1fr;gap:7px;background:#fff;border:1px solid var(--line);border-radius:7px;padding:9px;margin-top:6px}
+  .condition-row label{display:block;font-size:9.5px;color:var(--muted);font-weight:700;margin-bottom:2px}
+  .condition-row input,.condition-row select{width:100%;border:1px solid var(--line);border-radius:5px;padding:5px 6px;font-size:10.5px;background:#fff}
+  @media(max-width:760px){.condition-row{grid-template-columns:1fr 1fr}}
+
+  /* ---- 플랫폼 plan 배지 ---- */
+  .plan-badge-free{font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:4px;background:var(--grey-bg);color:var(--grey);font-weight:700;flex-shrink:0}
+  .plan-badge-paid{font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:4px;background:#e8f4e8;color:var(--green);font-weight:700;flex-shrink:0}
+
+  /* ---- 매트릭스 그룹 헤더 ---- */
+  table.matrix thead tr.mat-group th{background:#2a3950;color:#c8d8ea;font-size:11px;font-weight:800;letter-spacing:.04em;padding:6px 4px;text-align:center;border:1px solid #3a4f6b}
+  table.matrix thead tr.mat-plan th{background:var(--panel);font-size:10.5px;padding:5px 4px;text-align:center}
+  th.plan-free{color:var(--grey);font-weight:700}
+  th.plan-paid{color:var(--green);font-weight:700}
+
+  /* ---- platform cell (plat) ---- */
+  .plat{background:var(--surface);border:1px solid var(--line);border-radius:7px;margin-bottom:8px;overflow:visible}
+  .plat.excluded{border-color:#d9a49b;background:#fffafa}
+  .plat>summary{list-style:none;cursor:pointer;user-select:none}
+  .plat>summary::-webkit-details-marker{display:none}
+  .plat-head{display:flex;align-items:center;gap:9px;padding:9px 11px;min-height:43px}
+  .plat[open]>.plat-head{border-bottom:1px solid var(--line);background:#fbfcfe}
+  .question-body{padding:10px 11px 11px}
+  .question-arrow{color:var(--muted);font-size:10px;transition:transform .2s;flex-shrink:0}
+  .plat[open] .question-arrow{transform:rotate(90deg)}
+  .question-context{padding:0 2px 7px;margin-bottom:5px;border-bottom:1px dashed var(--line)}
+  .question-context-head{display:flex;align-items:center;gap:8px}
+  .question-context-label{font-size:10px;font-weight:800;color:var(--muted);flex-shrink:0}
+  .question-prompt-text{font-size:11.5px;color:var(--ink-soft);line-height:1.45;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .optional-followup{margin-top:5px}
+  .optional-followup>summary{list-style:none;cursor:pointer;color:var(--muted);font-size:10.5px;font-weight:700;width:max-content}
+  .optional-followup>summary::-webkit-details-marker{display:none}
+  .optional-followup[open]>summary{color:var(--accent)}
+  .optional-followup-body{padding:4px 0 1px}
+  .question-statuses{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:10px;white-space:nowrap}
+  .question-statuses span+span::before{content:"·";margin-right:6px;color:var(--line-strong)}
+  .question-review-status.done{color:var(--green);font-weight:700}
+  .plat-name{font-weight:700;font-size:13px}
+  .plat-badge{font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:4px;background:var(--accent-soft);color:var(--accent);font-weight:700}
+  .plat-total{font-family:var(--mono);font-weight:700;font-size:10.5px;padding:2px 7px;border-radius:4px;flex-shrink:0}
+  .plat-total.is-unrated{font-size:9.5px;font-weight:600;opacity:.58;padding:1px 5px}
+  .qtag{font-family:var(--mono);font-size:12px;font-weight:700;color:#fff;background:var(--ink-soft);border-radius:4px;padding:3px 8px;flex-shrink:0}
+
+  /* ---- inline prompt ---- */
+  .inline-prompt{flex:1;min-width:0}
+  .inline-prompt>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;user-select:none}
+  .inline-prompt>summary::-webkit-details-marker{display:none}
+  .platform-qtitle{font-size:12.5px;font-weight:800}
+  .prompt-toggle-hint{font-size:10px;color:var(--accent);font-weight:700;border:1px solid var(--accent);border-radius:4px;padding:1px 6px;flex-shrink:0}
+  .inline-prompt[open] .prompt-toggle-hint{color:var(--muted);border-color:var(--line)}
+  .copy-btn-small{background:#eef1f5;color:var(--ink-soft);border:1px solid var(--line-strong);border-radius:4px;padding:3px 9px;font-size:10.5px;font-weight:700;cursor:pointer;flex-shrink:0}
+  .copy-btn-small:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .inline-prompt-box{background:var(--ink);color:#dfe8f2;border-radius:7px;padding:10px 13px;font-size:12px;line-height:1.6;margin:8px 0 4px;font-family:var(--sans)}
+  .inline-prompt-box .plabel{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:#7fa8d4;text-transform:uppercase;display:block;margin-bottom:5px}
+  .variant-note-inline{font-size:10.5px;color:var(--muted);margin:4px 2px 0;padding-bottom:4px}
+  .variant-note-inline b{color:var(--ink-soft)}
+  .followup-btn-row{padding:3px 2px 2px;display:flex;gap:5px;flex-wrap:wrap}
+  @media(max-width:640px){.question-prompt-text{white-space:normal}.question-context-head{align-items:flex-start}}
+  .batch-score-btn{background:#f0fdf4!important;color:#166534!important;border-color:#bbf7d0!important}
+  .batch-score-panel{border:1px solid var(--line);border-radius:6px;margin:8px 0;background:#f8fffe}
+  .batch-score-panel>summary{list-style:none;cursor:pointer;padding:7px 10px;font-size:11.5px;font-weight:700;color:var(--ink-soft)}
+  .batch-score-panel>summary::-webkit-details-marker{display:none}
+  .batch-score-body{padding:8px 10px 10px;display:flex;flex-direction:column;gap:6px}
+  .batch-score-body textarea{width:100%;min-height:72px;border:1px solid var(--line);border-radius:5px;padding:6px 8px;font:11px var(--sans);resize:vertical}
+  .followup-presence{background:#eff6ff!important;color:#1d4ed8!important;border-color:#bfdbfe!important}
+  .question-body .field-block,.question-body .review-block{border:0;border-top:1px solid var(--line);border-radius:0;background:transparent}
+  .question-body .field-block{margin-bottom:4px}
+  .question-body .review-block{margin-top:4px}
+  .question-body .field-block>summary,.question-body .review-block>summary{padding-left:2px;padding-right:2px}
+  .question-body .field-content,.question-body .review-body{padding-left:2px;padding-right:2px}
+  .question-body .modelb-panel{border:0;border-radius:0;background:transparent;padding:4px 0}
+  @media(max-width:640px){.plat-head{align-items:flex-start;flex-wrap:wrap}.platform-qtitle{flex:1}.question-statuses{order:4;margin-left:35px}.plat-total{margin-left:auto}}
+
+  /* ---- dims ---- */
+  .dims{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:10px}
+  @media(max-width:640px){.dims{grid-template-columns:1fr 1fr}}
+  .dim{}
+  .dim .dn{font-size:11.5px;font-weight:700;color:var(--ink-soft);margin-bottom:4px;display:flex;align-items:center;gap:4px}
+  .dim-help{border:1px solid var(--line-strong);background:var(--panel);color:var(--muted);border-radius:50%;width:15px;height:15px;font-size:9px;cursor:help;display:inline-flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;line-height:1}
+  .seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .seg button{flex:1;border:none;background:var(--surface);padding:6px 0;font-family:var(--mono);font-weight:700;font-size:13px;cursor:pointer;color:var(--muted);border-right:1px solid var(--line)}
+  .seg button:last-child{border-right:none}
+  .seg button:hover{background:var(--panel)}
+  .seg button.on0{background:var(--red);color:#fff}
+  .seg button.on1{background:var(--amber);color:#fff}
+  .seg button.on2{background:var(--green);color:#fff}
+  .seg button.suggested{background:var(--grey-bg);color:var(--ink-soft);box-shadow:inset 0 0 0 2px var(--line-strong)}
+  .dim.gated{opacity:.32;pointer-events:none;filter:grayscale(1)}
+
+  /* ---- balance checklist ---- */
+  .balance-checklist{margin-top:6px;border:1px solid var(--line);border-radius:5px;background:#fff;overflow:hidden}
+  .balance-checklist>summary{list-style:none;cursor:pointer;font-size:10px;color:var(--muted);font-weight:700;padding:4px 9px;user-select:none}
+  .balance-checklist>summary::-webkit-details-marker{display:none}
+  .balance-checks{padding:7px 10px 9px;display:flex;flex-direction:column;gap:5px;border-top:1px solid var(--line)}
+  .balance-checks label{font-size:10.5px;display:flex;align-items:flex-start;gap:5px;cursor:pointer;line-height:1.4}
+  .balance-checks label input[type=checkbox]{margin-top:2px;flex-shrink:0}
+  .balance-ctx-row{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--muted)}
+  .balance-ctx-row select{font-size:10px;border:1px solid var(--line);border-radius:4px;padding:2px 5px;background:#fff}
+  .balance-judgment{font-size:9.5px;color:var(--muted);margin-top:3px;padding-top:4px;border-top:1px dashed var(--line);line-height:1.5}
+
+  /* ---- source wrap ---- */
+  .source-wrap{border-top:1px dashed var(--line);border-bottom:1px dashed var(--line);padding:9px 0;margin:3px 0 10px}
+  .source-wrap.gated{opacity:.32;pointer-events:none}
+  .source-title{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;margin-bottom:6px}
+  .src-hint{font-family:var(--mono);font-size:10px;color:var(--muted)}
+  .source-analyzer{display:grid;grid-template-columns:1fr auto;gap:6px}
+  .source-analyzer textarea{width:100%;min-height:58px;border:1px solid var(--line);border-radius:6px;padding:7px 8px;font:11px var(--sans);resize:vertical}
+  .source-analyzer button{align-self:stretch;border:1px solid var(--accent);background:var(--accent-soft);color:var(--accent);border-radius:6px;padding:0 12px;font-size:11px;font-weight:700;cursor:pointer}
+  .citation-list{display:flex;flex-direction:column;gap:5px;margin-top:7px}
+  .citation-item{display:grid;grid-template-columns:1fr 100px auto;gap:6px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:6px;padding:5px 7px;font-size:10.5px}
+  .citation-url{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#2563eb;text-decoration:none;font-size:11px}
+  .citation-url:hover{text-decoration:underline;color:#1d4ed8}
+  .citation-item select{width:100%;border:1px solid var(--line);border-radius:4px;padding:3px;font-size:10px}
+  .citation-remove{border:none;background:none;color:var(--muted);cursor:pointer;font-size:13px}
+  @media(max-width:640px){.citation-item{grid-template-columns:1fr 92px auto}}
+
+  /* ---- field blocks (answer/eval) — collapsed by default ---- */
+  .field-block{background:#fff;border:1px solid var(--line);border-radius:7px;margin-bottom:8px;overflow:hidden}
+  .field-block>summary{list-style:none;cursor:pointer;padding:8px 10px;font-size:11.5px;font-weight:800;color:var(--ink-soft);user-select:none}
+  .field-block>summary::-webkit-details-marker{display:none}
+  .field-content{padding:0 9px 9px}
+  .field-content textarea{width:100%;min-height:86px;border:1px solid var(--line);border-radius:6px;padding:7px 8px;font:11.5px var(--sans);resize:vertical}
+  .advanced-score-menu{position:relative;flex-shrink:0}
+  .advanced-score-menu>summary{list-style:none;width:25px;height:25px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px}
+  .advanced-score-menu>summary::-webkit-details-marker{display:none}
+  .advanced-score-menu[open]>summary{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+  .advanced-score-pop{position:absolute;right:0;top:30px;width:min(520px,82vw);background:#fff;border:1px solid var(--line-strong);border-radius:8px;box-shadow:0 14px 34px rgba(17,24,39,.16);padding:10px;z-index:20}
+  .advanced-score-pop textarea{width:100%;min-height:86px;border:1px solid var(--line);border-radius:6px;padding:7px 8px;font:11.5px var(--sans);resize:vertical}
+  .advanced-score-pop .field-actions{margin-top:6px}
+  .advanced-score-caption{font-size:10.5px;color:var(--muted);line-height:1.45;margin-bottom:7px}
+  @media(max-width:640px){.advanced-score-pop{position:fixed;left:12px;right:12px;top:auto;bottom:18px;width:auto}}
+  .field-actions{display:flex;gap:6px;margin-top:6px;align-items:center}
+  .field-actions button{border:1px solid var(--line-strong);background:#fff;color:var(--ink-soft);border-radius:5px;padding:5px 9px;font-size:10.5px;font-weight:700;cursor:pointer}
+  .field-actions .primary{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+  .parse-help{font-size:10px;color:var(--muted)}
+  .scoring-prompt-bar{display:flex;align-items:center;gap:8px;background:#f0f5ff;border:1px solid #c8d8f0;border-radius:6px;padding:6px 10px;margin-bottom:7px}
+  .scoring-prompt-label{font-size:10.5px;color:#3a5280;flex:1;line-height:1.4}
+  .copy-scoring-btn{flex-shrink:0;border:1px solid var(--accent);background:var(--accent-soft);color:var(--accent);border-radius:5px;padding:5px 10px;font-size:10.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+  .copy-scoring-btn:hover{background:var(--accent);color:#fff}
+  .modelb-panel{border:1px solid var(--line);border-radius:7px;background:#fff;margin:8px 0;padding:9px}
+  .modelb-title{font-size:11px;font-weight:800;color:var(--ink-soft);margin-bottom:7px;display:flex;justify-content:space-between;gap:8px}
+  .modelb-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .modelb-core{display:grid;grid-template-columns:minmax(220px,1.4fr) minmax(130px,.8fr);gap:7px;margin-bottom:9px;padding-bottom:9px;border-bottom:1px dashed var(--line)}
+  .modelb-core.single{grid-template-columns:1fr}
+  .modelb-field label{display:block;font-size:10px;color:var(--muted);font-weight:800;margin-bottom:3px}
+  .modelb-field select{width:100%;border:1px solid var(--line);border-radius:5px;padding:5px 6px;font-size:10.5px;background:#fff}
+  .modelb-score{font-family:var(--mono);font-size:11px;font-weight:800;color:var(--accent)}
+  .rec-ui{display:flex;flex-direction:column;gap:7px}
+  .rec-radio-row,.rec-check-row{display:flex;gap:8px;flex-wrap:wrap;font-size:11px;color:var(--ink-soft)}
+  .rec-radio-row label,.rec-check-row label{display:flex;align-items:center;gap:4px;cursor:pointer}
+  @media(max-width:640px){.modelb-grid,.modelb-core{grid-template-columns:1fr}}
+  .review-block{background:#fff;border:1px solid var(--line);border-radius:7px;margin-top:8px;overflow:hidden}
+  .review-block>summary{list-style:none;cursor:pointer;padding:8px 10px;font-size:11.5px;font-weight:800;color:var(--ink-soft);user-select:none;display:flex;justify-content:space-between;gap:8px}
+  .review-block>summary::-webkit-details-marker{display:none}
+  .review-body{padding:0 9px 9px}
+  .review-hint{font-size:10px;color:var(--muted);font-weight:600}
+
+  /* ---- notes ---- */
+  .notes{display:grid;grid-template-columns:1fr}
+  .notes label{font-size:11px;font-weight:700;color:var(--ink-soft);display:block;margin-bottom:3px}
+  .notes textarea{width:100%;border:1px solid var(--line);border-radius:6px;padding:7px 9px;font-size:12px;font-family:var(--sans);resize:vertical;min-height:54px;background:#fff;color:var(--ink)}
+  .notes textarea:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:var(--accent)}
+
+  /* ---- protocol ---- */
+  .protocol{border-left:4px solid var(--accent);background:var(--accent-soft);border-radius:7px;padding:8px 15px;margin:0 0 14px;font-size:12px}
+  .protocol>summary{font-size:13px;font-weight:700;cursor:pointer;list-style:none;padding:5px 0;user-select:none}
+  .protocol>summary::-webkit-details-marker{display:none}
+  .protocol[open]>summary .protocol-toggle-hint{display:none}
+  .protocol-toggle-hint{font-size:11px;font-weight:400;color:var(--ink-soft);margin-left:6px}
+  .protocol ul{margin:6px 0 4px;padding-left:19px}.protocol li{margin:3px 0}
+
+  /* ---- KPI & insights ---- */
+  .kpi-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:10px;margin:14px 0}
+  .kpi-card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:15px}
+  .kpi-num{font-family:var(--mono);font-size:34px;font-weight:800;color:var(--accent);line-height:1}
+  .kpi-sub{font-size:11px;color:var(--muted);margin-top:5px}
+  .kpi-risk{font-size:12px;margin-top:10px;color:var(--amber);font-weight:700}
+  @media(max-width:640px){.kpi-grid{grid-template-columns:1fr}}
+  .insight{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+  @media(max-width:640px){.insight{grid-template-columns:1fr}}
+  .ins-card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:13px 15px}
+  .ins-card h4{margin:0 0 8px;font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.02em}
+  .ins-bar{display:flex;align-items:center;gap:9px;margin-bottom:6px;font-size:12px}
+  .ins-bar .nm{width:96px;flex-shrink:0}
+  .ins-bar .track{flex:1;height:9px;background:var(--grey-bg);border-radius:5px;overflow:hidden}
+  .ins-bar .track i{display:block;height:100%;border-radius:5px}
+  .ins-bar .v{font-family:var(--mono);font-weight:700;min-width:42px;max-width:90px;text-align:right;font-size:11px;white-space:nowrap}
+
+  /* ---- priority ---- */
+  .pri-empty{background:var(--surface);border:1px dashed var(--line-strong);border-radius:8px;padding:26px;text-align:center;color:var(--muted);font-size:13px}
+  .pri-row{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-left-width:4px;border-radius:7px;padding:11px 14px;margin-bottom:8px}
+  .pri-rank{font-family:var(--mono);font-weight:700;font-size:16px;color:var(--line-strong);width:26px;flex-shrink:0;text-align:center}
+  .pri-main{flex:1;min-width:0}
+  .pri-where{font-size:12px;color:var(--muted);margin-bottom:2px}
+  .pri-where b{color:var(--ink)}
+  .pri-action{font-size:12.5px;color:var(--ink-soft)}
+  .pri-flags{display:flex;gap:5px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;max-width:160px}
+  .flag{font-size:10px;font-family:var(--mono);font-weight:700;padding:2px 7px;border-radius:4px}
+  .pri-sc{font-family:var(--mono);font-weight:700;font-size:14px;width:48px;text-align:right;flex-shrink:0}
+
+  footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:11.5px}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:50}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  @media print{.toolbar,.history-panel,.copy-btn-small,.tb,.save-plat-btn,.advanced-score-menu{display:none!important}.criteria-panel>.criteria-body,.platform-group>.platform-body,.plat>.question-body,.field-block>.field-content,.review-block>.review-body{display:block!important}.platform-group,.plat{break-inside:avoid}body{background:#fff}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="head-inner">
+    <div>
+      <p class="eyebrow">GEO · Employer Reputation Audit</p>
+      <h1>우미건설 GEO 채용평판 AI 감사 도구</h1>
+      <p class="sub">ChatGPT · Gemini · Claude · Perplexity 답변을 질문별 Model B 고정 배점으로 진단하고 신뢰출처 인용률을 추적합니다.</p>
+    </div>
+    <div class="gauge">
+      <div><span class="num" id="gNum">0</span><span class="den" id="gDen">/100</span></div>
+      <div class="lbl" id="gPct">진단 완료 0%</div>
+      <div class="bar"><i id="gBar"></i></div>
+    </div>
+  </div>
+</header>
+
+<!-- ===== 단순화된 상단 툴바 ===== -->
+<div class="toolbar">
+  <div class="tb-report-info">
+    <span>● 진행 회차:</span>
+    <span class="tb-report-id" id="activeReportLabel">로딩 중…</span>
+    <span class="tb-status-badge loading" id="activeStatusBadge">연결 전</span>
+  </div>
+  <span class="network-state" id="networkState"></span>
+  <span class="sp"></span>
+  <button class="tb" onclick="copyScoringPromptGlobal()" title="채점 보조 프롬프트를 클립보드에 복사">채점보조 프롬프트 복사</button>
+  <button class="tb toolbar-action-btn" onclick="manualRefresh()" title="시트에서 현재 회차를 다시 불러옵니다">새로고침</button>
+  <button class="tb toolbar-action-btn warn" onclick="closeActiveReport()" title="진행 회차를 마감하고 새 회차를 시작합니다">회차 마감</button>
+  <button class="tb toolbar-action-btn" id="historyToggleBtn" onclick="toggleHistoryPanel()">과거 조회 ▸</button>
+  <button class="tb" onclick="fillSample()">예시 데이터</button>
+  <button class="tb" onclick="exportJSON()">JSON 저장</button>
+  <button class="tb" onclick="document.getElementById('imp').click()">JSON 불러오기</button>
+  <input type="file" id="imp" accept="application/json" style="display:none" onchange="importJSON(event)">
+  <button class="tb primary" onclick="window.print()">PDF 인쇄</button>
+  <button class="tb warn" onclick="resetAll()">초기화</button>
+</div>
+
+<!-- ===== 과거 조회 패널 (평소 숨김) ===== -->
+<div id="historyPanel" class="history-panel">
+  <span class="history-panel-label">🗂 과거 회차 조회 (읽기전용):</span>
+  <select id="historySelect">
+    <option value="">회차를 선택하세요</option>
+  </select>
+  <button class="tb toolbar-action-btn" onclick="loadHistoryReport()">조회</button>
+  <button class="tb toolbar-action-btn warn" onclick="reopenHistoryReport()">마감 해제</button>
+  <button class="tb toolbar-action-btn" onclick="recheckReports()">목록 새로고침</button>
+  <button class="tb" onclick="returnToActive()">진행 회차로 돌아가기</button>
+</div>
+
+<!-- ===== 상태 배너 ===== -->
+<div class="locked-banner" id="lockedBanner">🔒 마감된 보고서(읽기전용) — 조회·JSON 저장·인쇄만 가능합니다. [과거 조회] → [마감 해제]로 수정 가능.</div>
+<div class="reopened-banner" id="reopenedBanner">✏️ 마감 해제됨 — 수정 후 [이 AI 저장]으로 반영하세요. 수정 시 추이 비교 기준선에 영향을 줄 수 있습니다.</div>
+
+<div class="wrap">
+
+  <!-- ===== SECTION 1: 채점 기준 ===== -->
+  <section>
+    <details class="criteria-panel">
+    <summary class="sec-head">
+      <span class="sec-no">01</span>
+      <h2 class="sec-title">채점 기준</h2>
+      <span class="criteria-hint">기준 보기 ▸</span>
+    </summary>
+    <div class="criteria-body">
+    <div class="legend">
+      <span class="chip c-red"><span class="dot"></span>배제 / 시급 (40% 미만)</span>
+      <span class="chip c-amber"><span class="dot"></span>보완 (40~60% 미만)</span>
+      <span class="chip c-green"><span class="dot"></span>양호 (60% 이상)</span>
+      <span class="chip c-grey"><span class="dot"></span>미평가</span>
+    </div>
+    <table class="rubric" style="margin-bottom:12px">
+      <thead><tr><th>경영진 보고용 GEO 영역</th><th>배점</th><th>주 채점 질문</th><th>의미</th></tr></thead>
+      <tbody>
+        <tr><td>Discoverability</td><td>30</td><td>Q1·Q2</td><td>비지명 질문에서 우미건설이 자발 노출·추천되는가</td></tr>
+        <tr><td>Information Quality</td><td>20</td><td>Q4</td><td>사실 정확성과 긍정·부정 균형이 충분한가</td></tr>
+        <tr><td>Source Credibility</td><td>20</td><td>전 질문</td><td>공식·언론·공시·인증 출처가 핵심 근거로 쓰였는가</td></tr>
+        <tr><td>Employer Brand Image</td><td>15</td><td>Q3</td><td>우미건설만의 고용브랜드 차별성이 드러나는가</td></tr>
+        <tr><td>Recommendation</td><td>15</td><td>Q5</td><td>지원자에게 추천할 근거와 적합 유형이 제시되는가</td></tr>
+      </tbody>
+    </table>
+    <table class="rubric">
+      <thead><tr><th>질문</th><th>직접 입력</th><th>점수 단계</th><th>자동 계산</th><th>HR 개입 포인트</th></tr></thead>
+      <tbody>
+        <tr><td>Q1·Q2</td><td>Discoverability·추천 순위</td><td>0 / 10 / 15 / 20 / 25 / 30</td><td>두 질문 평균</td><td>비지명 추천 노출 확대</td></tr>
+        <tr><td>Q3</td><td>Employer Brand</td><td>0 / 8 / 15</td><td>고정 배점 반영</td><td>우미 고유 차별점 강화</td></tr>
+        <tr><td>Q4</td><td>Information Quality</td><td>0 / 10 / 15 / 20</td><td>고정 배점 반영</td><td>사실 정정·긍부정 균형</td></tr>
+        <tr><td>Q5</td><td>추천 단계·체크 3개</td><td>0 / 5 / 8 / 15</td><td>체크 상태로 산출</td><td>근거·적합 유형·주의점 보완</td></tr>
+        <tr><td>전 질문</td><td>Source Type·Evidence Use</td><td>각 0 / 50 / 75 / 100%</td><td>두 값 평균 × 20점</td><td>신뢰출처와 주장 연결 강화</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:11.5px;color:var(--muted);margin-top:9px">※ Q4의 연봉 수치 정오는 Information Quality 오류 판정에서 제외합니다. Q1·Q2 미노출은 Discoverability 0점이며 출처도 0점으로 처리합니다.</p>
+    </div>
+    </details>
+  </section>
+
+  <!-- ===== SECTION 2: 평가 입력 ===== -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-no">02</span>
+      <span class="section-kind input">입력</span>
+      <h2 class="sec-title">생성형 AI별 평가 입력</h2>
+      <p class="sec-desc">각 플랫폼 행에서 프롬프트 확인·복사 후 채점 입력 → [이 AI 저장]으로 5셀만 시트에 반영합니다.</p>
+    </div>
+    <details class="protocol">
+      <summary>측정 프로토콜 — 측정 전 반드시 확인 <span class="protocol-toggle-hint">▸ 클릭해서 펼치기</span></summary>
+      <ul>
+        <li>계정: <b>감사 전용 계정 권장</b>. 불가 시 메인 계정에서 <b>메모리/개인화 기능 OFF</b>.</li>
+        <li>모드: 임시 채팅(Temporary Chat) 등 <b>이력 비저장 모드</b> 사용.</li>
+        <li>세션: <b>질문 1개당 새 대화창</b>. Q1~Q5를 한 번에 묻지 않습니다. 앞 질문 맥락이 뒤 답변을 오염시키기 때문입니다.</li>
+        <li>효율화 원칙: <b>질문 실행은 개별</b>, <b>채점은 5개 답변 기준 일괄</b>로 처리합니다.</li>
+        <li>반복: 같은 질문 <b>2~3회</b> 측정 후 다수의 답 기준으로 채점.</li>
+        <li>⚠️ 유료 모델은 로그아웃이 불가하므로 '로그아웃' 대신 위 방식으로 개인화를 차단한다.</li>
+        <li><b>동시 작업 주의:</b> 같은 AI를 2명이 동시에 입력하면 저장 충돌이 생깁니다. 플랫폼을 분담해 작업하세요.</li>
+        <li>※ 이 도구의 토큰은 오용 방지용이며 권한 통제 수단이 아닙니다. 민감 데이터는 별도 보안 채널을 이용하세요.</li>
+      </ul>
+    </details>
+    <div id="platformInputs"></div>
+  </section>
+
+  <!-- ===== SECTION 3: 결과 요약 ===== -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-no">03</span>
+      <span class="section-kind result">결과</span>
+      <h2 class="sec-title">종합 진단 매트릭스</h2>
+      <p class="sec-desc">셀을 클릭하면 해당 질문 입력 영역으로 이동합니다.</p>
+    </div>
+    <div class="matrix-scroll">
+      <table class="matrix">
+        <thead><tr><th class="qh">질문 × 플랫폼</th></tr></thead>
+        <tbody id="matBody"></tbody>
+        <tfoot><tr id="matFoot"><th>플랫폼 GEO(/100)</th></tr></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== SECTION 4: 개선 우선순위 ===== -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-no">04</span>
+      <span class="section-kind result">결과</span>
+      <h2 class="sec-title">개선 우선순위 (자동 도출)</h2>
+      <p class="sec-desc">배제 → 사실오류 → 총점 오름차순으로 자동 정렬합니다.</p>
+    </div>
+    <div id="priList"></div>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <h4 style="margin:0 0 8px">비지명 노출률</h4>
+        <div class="kpi-num" id="nonNamedRate">N/A</div>
+        <div class="kpi-sub">Q1·Q2에서 우미건설이 자발 언급된 비율</div>
+        <div class="kpi-sub" id="top5Rate">Top5 추천률: 순위 필드 없음</div>
+      </div>
+      <div class="kpi-card">
+        <h4 style="margin:0 0 8px">추천률</h4>
+        <div class="kpi-num" id="recommendRate">N/A</div>
+        <div class="kpi-sub">Q5에서 조건부 추천 이상으로 평가된 비율</div>
+        <div class="kpi-sub" id="geoExplain">평가 데이터가 부족합니다.</div>
+      </div>
+      <div class="kpi-card">
+        <h4 style="margin:0 0 8px">신뢰출처 인용률</h4>
+        <div class="kpi-num" id="trustRate">0%</div>
+        <div class="kpi-sub">Source Type 100%(공식·공시·인증·언론) 셀 비율</div>
+        <div style="margin-top:12px;font-size:11px;font-weight:700">우미 공식 인용률 <b id="officialRate">0%</b></div>
+        <div class="kpi-risk" id="weakOnly">취약 출처 단독 노출 0건</div>
+        <div class="kpi-sub" id="officialMissing">공식 채널 미인용 0건</div>
+        <div class="kpi-sub">GEO 개선의 핵심 추적 지표 — 분기마다 상승 목표</div>
+      </div>
+      <div class="kpi-card">
+        <h4 style="margin:0 0 8px">출처 유형별 인용 빈도</h4>
+        <div id="sourceDist"></div>
+      </div>
+    </div>
+    <div class="insight">
+      <div class="ins-card"><h4>플랫폼별 GEO Score (/100)</h4><div id="insPlat"></div></div>
+      <div class="ins-card"><h4>Model B 영역별 평균 점수</h4><div id="insQ"></div></div>
+    </div>
+  </section>
+
+  <footer>
+    GEO 운영 사이클: ① 노출 현황 진단 → ② 인용 가능 콘텐츠 확대 → ③ 분기 GEO Score 측정 → ④ 채용 브랜드 경쟁력 향상<br>
+    방법론 근거: BCG·McKinsey의 GEO 측정 방식과 Princeton GEO 연구를 채용 탐색·비교·평가·추천 여정에 맞게 적용<br>
+    감사 주기 권장: 분기 1회 · 동일 프롬프트 사용으로 추세 비교 · 결과 JSON 저장 후 다음 분기 GEO Score와 대조<br>
+    데이터는 브라우저 내에만 임시 저장됩니다. 닫기 전 <b>JSON 저장</b> 또는 <b>PDF 인쇄</b>로 보관하세요.
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================================
+   상수 정의
+===================================================================== */
+// 유료/무료를 별도 플랫폼으로 구분 — 총 8개
+// plan 필드는 측정조건·저장·매트릭스 전반에 자동 반영됩니다.
+const PLATFORMS=[
+  {id:"gpt_free",name:"ChatGPT",plan:"무료",        badge:"OpenAI"},
+  {id:"gpt_paid",name:"ChatGPT",plan:"유료(Plus)",   badge:"OpenAI"},
+  {id:"gem_free",name:"Gemini", plan:"무료",         badge:"Google"},
+  {id:"gem_paid",name:"Gemini", plan:"유료(Advanced)",badge:"Google"},
+  {id:"cla_free",name:"Claude", plan:"무료",         badge:"Anthropic"},
+  {id:"cla_paid",name:"Claude", plan:"유료(Pro)",    badge:"Anthropic"},
+  {id:"ppx_free",name:"Perplexity",plan:"무료",      badge:"Perplexity"},
+  {id:"ppx_paid",name:"Perplexity",plan:"유료(Pro)", badge:"Perplexity"}
+];
+
+/* ⚠️ GAS_URL을 배포된 Apps Script 웹앱 URL로 교체하세요 */
+const GAS_URL='https://script.google.com/macros/s/AKfycbz1kbXA_dMIaGrIWzRHiW6HUl1hT9kP5bT1GeNaaJFNLcFBkcsEaw1TtxkYdzJXtl8x/exec';
+/* GAS_TOKEN은 오용 방지용 공유 토큰입니다. 권한 통제 수단이 아닙니다 */
+const GAS_TOKEN='Woomilynn_geo';
+
+const EXECUTIVE_AREA_WEIGHTS={
+  discoverability:30,
+  information_quality:20,
+  source_credibility:20,
+  employer_brand_image:15,
+  recommendation_intention:15
+};
+
+const QUESTIONS=[
+  {id:"q1",tag:"Q1",title:"탐색 · 발견",journey:"탐색",area:"Discoverability",prompt:"취업하기 좋은 건설회사 추천해줘.",variant:"<b>비지명형.</b> 회사명 없이 우미건설이 자발 추천되는지 확인. 범용 취업 매력도(직원경험·복지·성장) 기준."},
+  {id:"q2",tag:"Q2",title:"탐색 · 안정성",journey:"탐색",area:"Discoverability",prompt:"안정적인 건설회사 추천해줘.",variant:"<b>비지명형.</b> 재무 안정성·신뢰 이미지 기준에서 우미건설이 자발 언급되는지 확인."},
+  {id:"q3",tag:"Q3",title:"비교 · 평판",journey:"비교",area:"Employer Brand",prompt:"우미건설은 다른 건설사와 비교하면 어떤 회사야?",variant:"우미건설의 차별성·포지셔닝·고용브랜드 이미지가 일반론을 넘어 설명되는지 확인."},
+  {id:"q4",tag:"Q4",title:"평가 · 종합 평판",journey:"평가",area:"Information Quality",prompt:"우미건설 취업할 만한 회사야? 장단점 솔직하게 알려줘.",variant:"종합 평판, 장단점 균형, 사실 정확성, 부정 이슈의 맥락 제공 여부를 확인."},
+  {id:"q5",tag:"Q5",title:"결정 · 추천",journey:"결정",area:"Recommendation",prompt:"우미건설 지원자에게 추천할 만해? 누구에게 맞아?",variant:"최종 추천도. 명확한 추천, 구체적 근거, 적합 지원자 유형, 주의사항 제시 여부를 확인."}
+];
+
+// 후속 프롬프트 상수
+const SOURCE_FOLLOWUP_PROMPT="방금 답변의 근거를 어떤 출처에서 가져왔어? 공식 사이트·언론·취업플랫폼·커뮤니티 중 무엇인지 유형별로 알려줘.";
+const PRESENCE_FOLLOWUP_PROMPT="방금 추천 기준이 뭐였어? 우미건설은 그 기준에서 어디쯤이고, 목록에 있었는지 없었는지와 그 이유를 알려줘.";
+
+const SOURCE_LEVELS={none:0,weak:0.5,reference:0.75,trusted:1};
+const SOURCE_LEVEL_LABELS=[
+  ["none","0% · 출처없음/커뮤니티"],
+  ["weak","50% · 비공식 중심"],
+  ["reference","75% · 언론/채용사이트 참고"],
+  ["trusted","100% · 공식/공시/인증/언론"]
+];
+const EVIDENCE_LEVEL_LABELS=[
+  ["none","0% · 답변과 연결 안 됨"],
+  ["weak","50% · 일부 참고"],
+  ["reference","75% · 주요 판단 근거"],
+  ["trusted","100% · 핵심 주장 근거"]
+];
+function sourceScore20(c){
+  const t=SOURCE_LEVELS[c.source_type]??0;
+  const u=SOURCE_LEVELS[c.source_use]??0;
+  return Math.round(20*(t*0.5+u*0.5));
+}
+function sourceScoreToLegacy(score){
+  if(score>=15)return 2;
+  if(score>=8)return 1;
+  return 0;
+}
+function recScore(c){
+  if(c.rec_grade==="none")return 0;
+  if(c.rec_grade==="conditional")return 5;
+  if(c.rec_grade==="recommend"){
+    const rc=c.rec_checks||{};
+    return rc.reasons&&rc.fit&&rc.cautions?15:8;
+  }
+  return null;
+}
+function recScoreToLegacy(score){
+  if(score===null||score===undefined)return null;
+  if(score>=15)return 2;
+  if(score>=8)return 1;
+  return 0;
+}
+function optionHtml(items,value){
+  return items.map(([v,label])=>`<option value="${v}" ${value===v?"selected":""}>${label}</option>`).join("");
+}
+function scoreOptionHtml(items,value){
+  const hasValue=value!==null&&value!==undefined&&value!=="";
+  return items.map(([v,label])=>`<option value="${v}" ${hasValue&&Number(value)===v?"selected":""}>${v}점 · ${label}</option>`).join("");
+}
+function modelBCoreHtml(q,p,c){
+  if(q.id==="q1"||q.id==="q2")return `<div class="modelb-core">
+    <div class="modelb-field"><label>Discoverability (6단계)</label><select onchange="setModelBScore('${q.id}','${p.id}','discoverability',this.value)"><option value="">선택</option>${scoreOptionHtml([[0,"미노출"],[10,"단순 언급·추천 이유 없음"],[15,"조건부 언급·일부 긍정 근거"],[20,"Top10 내 추천"],[25,"Top5 내 추천"],[30,"Top3·핵심 추천기업"]],c.discoverability)}</select></div>
+    <div class="modelb-field"><label>추천 순위</label><select id="rank_${q.id}_${p.id}" onchange="setMentionRank('${q.id}','${p.id}',this.value)" ${c.discoverability===0?"disabled":""}><option value="">미확인</option><option value="1" ${c.mention_rank===1?"selected":""}>1~2위</option><option value="3" ${c.mention_rank===3?"selected":""}>3~5위</option><option value="6" ${c.mention_rank===6?"selected":""}>6위+</option></select></div>
+  </div>`;
+  if(q.id==="q3")return `<div class="modelb-core single"><div class="modelb-field"><label>Employer Brand (3단계)</label><select onchange="setModelBScore('${q.id}','${p.id}','brand',this.value)"><option value="">선택</option>${scoreOptionHtml([[0,"건설업 일반론·고유성 없음"],[8,"우미 고유 특성 1개"],[15,"안정성·주택강점·브랜드·문화 중 2개 이상"]],c.brand)}</select></div></div>`;
+  if(q.id==="q4")return `<div class="modelb-core single"><div class="modelb-field"><label>Information Quality (4단계)</label><select onchange="setModelBScore('${q.id}','${p.id}','iq',this.value)"><option value="">선택</option>${scoreOptionHtml([[0,"핵심사실 오류 2개+ 또는 부정만 단독"],[10,"핵심사실 오류 1개 또는 한쪽만 서술"],[15,"오류 없음·근거 약함 또는 한쪽 치우침"],[20,"오류 없음·긍정과 부정 모두 언급"]],c.iq)}</select></div></div>`;
+  return "";
+}
+function modelBPanelHtml(q,p,c){
+  const sourceScore=c.source_score??(c.source_type&&c.source_use?sourceScore20(c):null);
+  const rec=recScore(c);
+  const sourceGated=(q.id==="q1"||q.id==="q2")&&c.discoverability===0;
+  return `<div class="modelb-panel">
+    <div class="modelb-title"><span>${q.area} 채점</span><span class="modelb-score" id="mbSrc_${q.id}_${p.id}">출처 ${sourceScore===null?"N/A":sourceScore+"/20"}</span></div>
+    ${modelBCoreHtml(q,p,c)}
+    <div class="modelb-grid">
+      <div class="modelb-field"><label>Source Type</label><select id="srcType_${q.id}_${p.id}" ${sourceGated?"disabled":""} onchange="setSourceLevel('${q.id}','${p.id}','source_type',this.value)"><option value="">선택</option>${optionHtml(SOURCE_LEVEL_LABELS,c.source_type)}</select></div>
+      <div class="modelb-field"><label>Evidence Use</label><select id="srcUse_${q.id}_${p.id}" ${sourceGated?"disabled":""} onchange="setSourceLevel('${q.id}','${p.id}','source_use',this.value)"><option value="">선택</option>${optionHtml(EVIDENCE_LEVEL_LABELS,c.source_use)}</select></div>
+    </div>
+    ${q.id==="q5"?`<div class="rec-ui" style="margin-top:9px">
+      <div class="modelb-title"><span>Recommendation 자동 점수</span><span class="modelb-score" id="mbRec_${q.id}_${p.id}">${rec===null?"N/A":rec+"/15"}</span></div>
+      <div class="rec-radio-row">
+        <label><input type="radio" name="rec_${q.id}_${p.id}" ${c.rec_grade==="none"?"checked":""} onchange="setRecommendationGrade('${q.id}','${p.id}','none')">추천 안 함</label>
+        <label><input type="radio" name="rec_${q.id}_${p.id}" ${c.rec_grade==="conditional"?"checked":""} onchange="setRecommendationGrade('${q.id}','${p.id}','conditional')">조건부</label>
+        <label><input type="radio" name="rec_${q.id}_${p.id}" ${c.rec_grade==="recommend"?"checked":""} onchange="setRecommendationGrade('${q.id}','${p.id}','recommend')">추천</label>
+      </div>
+      <div class="rec-check-row">
+        <label><input type="checkbox" ${(c.rec_checks||{}).reasons?"checked":""} onchange="setRecommendationCheck('${q.id}','${p.id}','reasons',this.checked)">근거 3개 이상</label>
+        <label><input type="checkbox" ${(c.rec_checks||{}).fit?"checked":""} onchange="setRecommendationCheck('${q.id}','${p.id}','fit',this.checked)">적합 지원자 유형</label>
+        <label><input type="checkbox" ${(c.rec_checks||{}).cautions?"checked":""} onchange="setRecommendationCheck('${q.id}','${p.id}','cautions',this.checked)">주의사항·단점</label>
+      </div>
+    </div>`:""}
+    ${q.id==="q4"?`<div class="parse-help" style="margin-top:7px">연봉 수치의 정오 여부는 정보품질 정확성 채점에서 제외합니다.</div>`:""}
+  </div>`;
+}
+function setModelBScore(qid,pid,field,value){
+  const c=DATA[key(qid,pid)],v=value===""?null:Number(value);
+  c.reviewed=true;
+  const prev=c[field];
+  c[field]=v;
+  if(field==="discoverability"){
+    c.pre=v===null?null:(v===0?0:2);
+    if(v===0){c.mention_rank=null;c.source_type="none";c.source_use="none";c.source_score=0;c.src=0;}
+    else if(prev===0&&v>0){c.source_type=null;c.source_use=null;c.source_score=null;c.src=null;}
+  }else if(field==="iq")c.acc=v===null?null:(v>=20?2:v>=10?1:0);
+  else if(field==="brand")c.fav=v===null?null:(v>=15?2:v>=8?1:0);
+  const rank=document.getElementById(`rank_${qid}_${pid}`);if(rank)rank.disabled=v===0;
+  const st=document.getElementById(`srcType_${qid}_${pid}`),su=document.getElementById(`srcUse_${qid}_${pid}`);if(st)st.disabled=v===0;if(su)su.disabled=v===0;
+  if(v===0){if(st)st.value="none";if(su)su.value="none";const se=document.getElementById(`mbSrc_${qid}_${pid}`);if(se)se.textContent="출처 0/20";}
+  else if(prev===0&&v>0){if(st)st.value="";if(su)su.value="";const se=document.getElementById(`mbSrc_${qid}_${pid}`);if(se)se.textContent="출처 N/A";}
+  markDirty(pid);refreshAll();
+}
+function setMentionRank(qid,pid,value){
+  const c=DATA[key(qid,pid)];c.reviewed=true;c.mention_rank=value===""?null:Number(value);markDirty(pid);refreshAll();
+}
+function setSourceLevel(qid,pid,field,value){
+  const c=DATA[key(qid,pid)];
+  c.reviewed=true;
+  c[field]=value||null;
+  c.source_score=(c.source_type&&c.source_use)?sourceScore20(c):null;
+  c.src=c.source_score===null?null:sourceScoreToLegacy(c.source_score);
+  markDirty(pid);
+  const el=document.getElementById(`mbSrc_${qid}_${pid}`);if(el)el.textContent=`출처 ${c.source_score===null?"N/A":c.source_score+"/20"}`;
+  refreshAll();
+}
+function setRecommendationGrade(qid,pid,value){
+  const c=DATA[key(qid,pid)];
+  c.reviewed=true;
+  c.rec_grade=value;
+  c.rec_score=recScore(c);
+  c.fav=recScoreToLegacy(c.rec_score);
+  markDirty(pid);
+  const el=document.getElementById(`mbRec_${qid}_${pid}`);if(el)el.textContent=c.rec_score===null?"N/A":c.rec_score+"/15";
+  refreshAll();
+}
+function setRecommendationCheck(qid,pid,field,value){
+  const c=DATA[key(qid,pid)];
+  c.reviewed=true;
+  if(!c.rec_checks)c.rec_checks={reasons:false,fit:false,cautions:false};
+  c.rec_checks[field]=value;
+  c.rec_score=recScore(c);
+  c.fav=recScoreToLegacy(c.rec_score);
+  markDirty(pid);
+  const el=document.getElementById(`mbRec_${qid}_${pid}`);if(el)el.textContent=c.rec_score===null?"N/A":c.rec_score+"/15";
+  refreshAll();
+}
+const SOURCE_TAGS=[
+  {id:"official",label:"공식(홈페이지·채용페이지)",trust:true},
+  {id:"press",label:"언론·기사",trust:true},
+  {id:"cert",label:"인증·수상·공신력기관",trust:true},
+  {id:"review",label:"리뷰·커뮤니티",trust:false},
+  {id:"wiki",label:"위키",trust:false},
+  {id:"portal",label:"채용·정보 포털",trust:false},
+  {id:"none",label:"출처 없음/불명",trust:false},
+  {id:"unknown",label:"미분류",trust:false}
+];
+
+const LEGACY_SCORING_PROMPT=String.raw`너는 채용 평판 감사의 채점 보조자다. 아래 [검증된 사실]을 기준으로
+[AI 답변]을 4개 차원에서 0~2점으로 채점하고 근거·개선점·인용출처를 제시하라.
+너의 점수는 '초안'이며 최종 확정은 사람이 한다.
+
+[검증된 사실 — 2026.6 확인 / 출처 등급 표기]
+■ 공식 홈페이지 1차 (woomi.com)
+- 본사: 서울 강남구 언주로30길 39 린스퀘어(도곡동 467-14) [공식]
+- 미션: 고객의 꿈과 행복을 위해 더 나은 공간의 가치를 창조 [공식]
+- 비전: 선도적인 일류 종합부동산 회사(PREMIER SPACE & VALUE CREATOR) [공식]
+- 핵심가치: 신뢰(Trust)·학습(Learning)·도전(Challenge) [공식]
+- 인재상: 적극적 사고·능동적 패기·꾸준한 노력 [공식]
+- 사업영역: 주택·건축·투자·토목·기타 [공식]
+- 브랜드: 우미린(Lynn)·린스트라우스(Lynn StrauS) [공식]
+- 공식 채용채널: woomi.recruiter.co.kr [공식]
+■ 발표기관 1차
+- 시공능력평가: 2025년 전국 21위(시평액 2조 2,482억). 2024년 27위 [국토부 발표 2025.7]
+- 신용등급: 건설공제조합·HUG AAA, 2019~2025 연속 최고 [조합·HUG]
+- 경영 리스크: 공정위 벌떼입찰 과징금 483.79억 + 법인 형사고발 [공정위 2025.11]
+■ 2차·보조 (단독 오류 판정 근거 금지)
+- 설립: 1982년(공식 '40년 노하우'로 교차확인, 정확 월일은 연혁 확인 권장)
+- 재무 성향: 저부채·보수적('5년치 현금 보유' 평가, 언론·주관)
+
+[채점 기준]
+- 언급도: 0=답변에 우미건설 없음 / 1=곁다리 언급 / 2=주체로 명확히 언급
+- 정확성: 핵심사실(본사·시평순위·핵심가치·인재상·신용등급) 0개 오류=2 / 1개=1 / 2개 이상=0. 연봉·복지 등 공식 미공개 정보는 사실오류로 단정하지 말고 검증불가 참고정보로 본다.
+- 균형성: 0=부정 사실만 단독 / 1=혼재·무색 / 2=긍정 사실 포함 (건설업 일반론 단독=0)
+  [균형성 체크: ①재무안정성(AAA·저부채·시평순위) 언급 여부 ②공정위 제재 등 부정이슈 노출 맥락(단독/균형) ③긍정부정 비중]
+- 출처품질: 0=출처없음·리뷰만 / 1=공식·언론 혼재 / 2=공식·언론·인증이 주 출처
+※ 언급도가 0이면 나머지 차원은 "N/A"로 표기하라.
+※ 비지명 질문(q1·q2): 우미건설 회사명이 답변에 자발적으로 등장하는지로 언급도 판정. 포함=2 / 조건부·곁다리=1 / 누락=0(배제). 추천 근거가 우미 강점과 부합하면 균형성 가점.
+※ 추천 질문(q5): 명확한 추천, 구체적 근거, 적합 지원자 유형, 주의사항을 함께 제시하면 균형성과 추천 판단을 높게 본다.
+
+[추가 안내]
+- 답변에 인용/언급된 출처를 아래 유형으로 분류해 모두 나열하라:
+  공식 / 언론 / 인증 / 리뷰·커뮤니티 / 위키 / 포털 / 출처없음
+
+[AI 답변]
+"""
+(여기에 채점할 AI 답변 전체를 붙여넣으시오)
+"""
+
+[출력 형식 — 이 JSON만 출력, 다른 말 금지]
+{
+  "언급도": {"점수":0~2, "근거":"..."},
+  "정확성": {"점수":0~2, "근거":"...", "발견된_사실오류":"없으면 빈 문자열"},
+  "균형성": {"점수":0~2, "근거":"..."},
+  "출처품질": {"점수":0~2, "근거":"..."},
+  "인용출처": [{"url":"...","유형":"공식|언론|인증|리뷰|위키|포털|없음"}],
+  "HR_개선제안": "이 답변을 개선하려면 무엇을 해야 하는가 1~2문장"
+}`;
+
+const SCORING_PROMPT=String.raw`너는 우미건설 채용 평판 감사의 Model B 채점 보조자다. 아래 검증된 사실과 질문별 기준만 사용해 AI 답변을 채점하라. 추측하지 말고, 최종 출력은 JSON만 제공하라.
+
+[검증된 사실 — 2026.6]
+- 공식: 본사 서울 강남구 언주로30길 39 린스퀘어, 비전은 선도적인 일류 종합부동산 회사, 핵심가치는 신뢰·학습·도전, 브랜드는 우미린·린스트라우스.
+- 공신력 자료: 2025년 시공능력평가 21위, 건설공제조합·HUG 신용평가 AAA, 2019~2025 연속 최고등급.
+- 주요 리스크: 2025년 공정위 벌떼입찰 관련 과징금 483.79억원 및 우미건설 법인 형사고발.
+- 연봉 수치는 공식 미공개이므로 Information Quality의 사실오류 판정에서 제외한다.
+
+[질문별 채점]
+- Q1·Q2 discoverability: 0 미노출 / 10 단순 언급·추천이유 없음 / 15 조건부 언급·일부 긍정근거 / 20 Top10 / 25 Top5 / 30 Top3·핵심추천. mention_rank는 1~2위=1, 3~5위=3, 6위+=6, 미확인=null.
+- Q3 brand: 0 건설업 일반론 / 8 우미 고유특성 1개 / 15 안정성·주택강점·브랜드·문화 중 2개 이상.
+- Q4 iq: 0 핵심오류 2개 이상 또는 부정만 단독 / 10 오류 1개 또는 한쪽만 서술 / 15 오류 없음·근거 약함 또는 한쪽 치우침 / 20 오류 없음·긍정과 부정 모두 언급.
+- Q5 rec_grade: none=추천 안 함, conditional=조건부, recommend=추천. rec_checks는 reasons(구체적 근거 3개 이상), fit(적합 지원자 유형), cautions(주의사항·단점)의 true/false.
+- 모든 질문 source_type과 source_use: none=0%, weak=50%, reference=75%, trusted=100%. source_type은 출처 수준, source_use는 해당 출처가 실제 핵심 판단 근거로 연결된 정도다.
+
+[AI 답변]
+"""
+(여기에 채점할 AI 답변 전체를 붙여넣으시오)
+"""
+
+[출력 형식]
+Q1·Q2: {"qid":"q1","discoverability":0,"mention_rank":null,"source_type":"none","source_use":"none","근거":"","인용출처":[],"HR_개선제안":""}
+Q3: {"qid":"q3","brand":0,"source_type":"none","source_use":"none","근거":"","인용출처":[],"HR_개선제안":""}
+Q4: {"qid":"q4","iq":0,"source_type":"none","source_use":"none","근거":"","발견된_사실오류":"","인용출처":[],"HR_개선제안":""}
+Q5: {"qid":"q5","rec_grade":"none","rec_checks":{"reasons":false,"fit":false,"cautions":false},"source_type":"none","source_use":"none","근거":"","인용출처":[],"HR_개선제안":""}`;
+
+/* =====================================================================
+   전역 상태
+===================================================================== */
+let DATA={};
+let ACTIVE_REPORT_ID=null;      // 현재 진행 중인 active 회차 ID
+let VIEWING_REPORT_ID=null;     // 화면에 보이는 회차 ID (조회 모드 포함)
+let VIEWING_STATUS=null;        // 'active' | 'closed' | 'reopened'
+let REPORTS=[];                 // 과거 조회 패널용 목록
+let NETWORK_BUSY=false;
+const LOCAL_EDITS=new Set();    // 미저장 플랫폼 ID Set
+
+const DIMS=[
+  {k:"pre",n:"언급도",h:"답변에 우미건설이 명확히 언급되는가 (0=없음 1=곁다리 2=주체)"},
+  {k:"acc",n:"정보품질",h:"Q4 전담. 사실 정확성 + 긍정·부정 균형. 연봉 수치 정오는 채점 제외"},
+  {k:"fav",n:"브랜드/추천",h:"Q3 고용브랜드 또는 Q5 추천 적합성 보조 판단"},
+  {k:"src",n:"출처신뢰성",h:"전 질문 공통. 신뢰출처 종류와 실제 근거 활용 여부"}
+];
+function dimsForQuestion(qid){
+  if(qid==="q1"||qid==="q2")return DIMS.filter(d=>["pre","src"].includes(d.k));
+  if(qid==="q3")return DIMS.filter(d=>["fav","src"].includes(d.k));
+  if(qid==="q4")return DIMS.filter(d=>["acc","src"].includes(d.k));
+  if(qid==="q5")return DIMS.filter(d=>["fav","src"].includes(d.k));
+  return DIMS;
+}
+
+/* =====================================================================
+   데이터 초기화
+===================================================================== */
+function key(q,p){return q+"_"+p}
+function blankCell(){
+  return {
+    pre:null,acc:null,fav:null,src:null,
+    sources:[],citedSources:[],sourcePanel:"",
+    summary:"",note:"",aiAnswer:"",aiEvaluation:"",
+    discoverability:null,mention_rank:null,iq:null,
+    source_type:null,source_use:null,source_score:null,
+    brand:null,rec_grade:null,rec_checks:{reasons:false,fit:false,cautions:false},rec_score:null,
+    suggestions:{},answerLoaded:false,reviewed:false,
+    balanceEvidence:{finance:false,negative:false,negContext:""}
+  }
+}
+function blankConditions(){
+  // plan(유료/무료)은 PLATFORMS[].plan에서 고정값으로 가져오므로 조건 객체에서 제외
+  return Object.fromEntries(
+    PLATFORMS.map(p=>[p.id,{accountType:"audit",memory:"off",model:"",measuredAt:new Date().toISOString().slice(0,10)}])
+  )
+}
+function init(){
+  DATA={__meta:{author:"",accountType:"audit",memoryState:"off",measuredAt:new Date().toISOString().slice(0,10),conditions:blankConditions()}};
+  QUESTIONS.forEach(q=>PLATFORMS.forEach(p=>{DATA[key(q.id,p.id)]=blankCell()}));
+  LOCAL_EDITS.clear();
+}
+function normalizeData(){
+  const old=DATA.__meta||{},conditions=blankConditions();
+  PLATFORMS.forEach(p=>conditions[p.id]={...conditions[p.id],...(old.conditions?.[p.id]||{})});
+  DATA.__meta={author:"",accountType:"audit",memoryState:"off",measuredAt:new Date().toISOString().slice(0,10),...old,conditions};
+  QUESTIONS.forEach(q=>PLATFORMS.forEach(p=>{
+    const k=key(q.id,p.id),prev=DATA[k]||{},legacy=Array.isArray(prev.sources)?prev.sources.map(type=>({url:"",type})):[];
+    DATA[k]={
+      ...blankCell(),...prev,
+      sources:Array.isArray(prev.sources)?prev.sources:[],
+      citedSources:Array.isArray(prev.citedSources)?prev.citedSources:legacy,
+      balanceEvidence:prev.balanceEvidence||{finance:false,negative:false,negContext:""},
+      rec_checks:prev.rec_checks||{reasons:false,fit:false,cautions:false}
+    };
+  }));
+}
+init();
+
+/* =====================================================================
+   더티 추적
+===================================================================== */
+function markDirty(pid){
+  LOCAL_EDITS.add(pid);
+  const btn=document.getElementById('savePlat_'+pid);
+  if(btn&&!btn.classList.contains('dirty')){btn.classList.add('dirty');btn.textContent='이 AI 저장 ●';}
+}
+function markClean(pid){
+  LOCAL_EDITS.delete(pid);
+  const btn=document.getElementById('savePlat_'+pid);
+  if(btn){btn.classList.remove('dirty');btn.textContent='이 AI 저장';}
+}
+
+/* =====================================================================
+   UI 빌더
+===================================================================== */
+function buildCards(){
+  // 구역 A(질문 프롬프트 참조) 없음 — 인라인 프롬프트로 통합
+  buildPlatformInputs();
+  refreshAll();
+}
+
+function buildPlatformInputs(){
+  const root=document.getElementById("platformInputs");root.innerHTML="";
+
+  // AI 이름 기준으로 그룹핑 — 무료/유료 쌍을 시각적으로 구분
+  const aiNames=[...new Set(PLATFORMS.map(p=>p.name))]; // ChatGPT, Gemini, Claude, Perplexity
+
+  PLATFORMS.forEach((p,pi)=>{
+    const cond=DATA.__meta.conditions[p.id];
+    const isPaid=p.plan.includes('유료');
+    const planCls=isPaid?'plan-badge-paid':'plan-badge-free';
+
+    // AI가 바뀌는 지점에 구분선 삽입
+    if(pi>0 && PLATFORMS[pi-1].name!==p.name){
+      const sep=document.createElement("div");
+      sep.style.cssText="height:1px;background:var(--line);margin:6px 0 10px";
+      root.appendChild(sep);
+    }
+
+    const group=document.createElement("details");
+    group.className="platform-group";
+    group.id="platformGroup_"+p.id;
+    group.innerHTML=`
+      <summary>
+        <span class="plat-name">${p.name}</span>
+        <span class="${planCls}">${p.plan}</span>
+        <span class="plat-badge">${p.badge}</span>
+        <span class="qscore" id="pgsc_${p.id}"></span>
+        <span class="pg-spacer"></span>
+        <button class="save-plat-btn batch-score-btn" id="batchBtn_${p.id}"
+          onclick="event.stopPropagation();copyBatchScoringPrompt('${p.id}',this)">일괄 채점 프롬프트 복사</button>
+        <button class="save-plat-btn" id="savePlat_${p.id}"
+          onclick="event.stopPropagation();savePlatformById('${p.id}')">이 AI 저장</button>
+        <span class="pg-arrow">▶</span>
+      </summary>
+      <div class="platform-body">
+        <details class="batch-score-panel">
+          <summary>📋 일괄 채점 JSON 붙여넣기 ▸</summary>
+          <div class="batch-score-body">
+            <textarea id="batchJson_${p.id}" placeholder='채점 AI가 출력한 Model B JSON 배열을 붙여넣으세요. 예: [{"qid":"q1","discoverability":25,...},...]' rows="4"></textarea>
+            <button class="primary" onclick="parseBatchJSON('${p.id}')">일괄 파싱 → 5개 셀 적용</button>
+            <span class="parse-help">파싱 후 각 질문의 채점 결과가 자동으로 반영됩니다.</span>
+          </div>
+        </details>
+        <details class="condition-toggle">
+          <summary>⚙ 측정 조건 (계정·메모리·모델·측정일) ▸ <span style="color:${isPaid?'var(--green)':'var(--grey)'}">— ${p.plan}</span></summary>
+          <div class="condition-row">
+            <div><label>계정 유형</label><select onchange="setCondition('${p.id}','accountType',this.value)"><option value="audit" ${cond.accountType==="audit"?"selected":""}>감사 전용</option><option value="main" ${cond.accountType==="main"?"selected":""}>메인 계정</option></select></div>
+            <div><label>메모리 상태</label><select onchange="setCondition('${p.id}','memory',this.value)"><option value="off" ${cond.memory==="off"?"selected":""}>OFF</option><option value="on" ${cond.memory==="on"?"selected":""}>ON</option></select></div>
+            <div><label>모델명</label><input value="${escapeA(cond.model)}" oninput="setCondition('${p.id}','model',this.value)" placeholder="${isPaid?'예: GPT-4o / Gemini Advanced':'예: GPT-4o mini'}"></div>
+            <div><label>측정일</label><input type="date" value="${escapeA(cond.measuredAt)}" onchange="setCondition('${p.id}','measuredAt',this.value)"></div>
+          </div>
+        </details>
+        <div id="platformRows_${p.id}"></div>
+      </div>`;
+
+    const rows=group.querySelector("#platformRows_"+p.id);
+    QUESTIONS.forEach(q=>rows.appendChild(platformCell(q,p)));
+    root.appendChild(group);
+  });
+}
+
+function platformCell(q,p){
+  const c=DATA[key(q.id,p.id)];
+  const pl=document.createElement("details");
+  pl.className="plat question-card";
+  pl.id=`plat_${q.id}_${p.id}`;
+  const be=c.balanceEvidence||{};
+
+  pl.innerHTML=`
+    <summary class="plat-head">
+      <span class="qtag">${q.tag}</span>
+      <span class="platform-qtitle">${q.title}</span>
+      <span class="question-statuses">
+        <span id="hint_${q.id}_${p.id}">${sourceHint(c)}</span>
+        <span class="question-review-status ${c.reviewed?"done":""}" id="review_${q.id}_${p.id}">${c.reviewed?"검토 완료":"검토 전"}</span>
+      </span>
+      <span class="plat-total" id="pt_${q.id}_${p.id}"></span>
+      <button class="copy-btn-small" onclick="event.preventDefault();copyQPromptBtn(event,'${q.id}')">프롬프트 복사</button>
+      <span class="question-arrow">▶</span>
+    </summary>
+    <div class="question-body">
+      <div class="question-context">
+        <div class="question-context-head">
+          <span class="question-context-label">질문</span>
+          <span class="question-prompt-text" title="${escapeA(q.prompt)}">${escapeH(q.prompt)}</span>
+      <details class="advanced-score-menu">
+        <summary title="항목별 재채점">⚙</summary>
+        <div class="advanced-score-pop" onclick="event.stopPropagation()">
+          <div class="advanced-score-caption">개별 문항만 다시 채점해야 할 때 사용합니다. 일반 운영은 AI별 일괄 채점을 우선 사용하세요.</div>
+          <div class="scoring-prompt-bar">
+            <span class="scoring-prompt-label">이 문항만 재채점</span>
+            <button class="copy-scoring-btn" onclick="copyScoringPromptForCard('${q.id}','${p.id}',this)">프롬프트 복사</button>
+          </div>
+          <textarea id="evaluation_${q.id}_${p.id}"
+            oninput="setText('${q.id}','${p.id}','aiEvaluation',this.value)"
+            placeholder="항목별 재채점 JSON을 붙여넣으세요">${escapeH(c.aiEvaluation)}</textarea>
+          <div class="field-actions">
+            <button class="primary" onclick="parseEvaluation('${q.id}','${p.id}')">JSON 파싱</button>
+            <span class="parse-help">예외적으로 특정 문항만 다시 채점할 때 사용합니다.</span>
+          </div>
+        </div>
+      </details>
+        </div>
+        <details class="optional-followup">
+          <summary>추가 확인 (선택) ▸</summary>
+          <div class="optional-followup-body">
+            ${q.variant?`<div class="variant-note-inline">${q.variant}</div>`:''}
+            <div class="followup-btn-row">
+              <button class="copy-btn-small" onclick="copyFollowupBtn(event,'source')">출처 근거 확인</button>
+              ${['q1','q2'].includes(q.id)?`<button class="copy-btn-small followup-presence" onclick="copyFollowupBtn(event,'presence')">추천·누락 이유 확인</button>`:''}
+            </div>
+          </div>
+        </details>
+      </div>
+
+    <details class="field-block">
+      <summary>① AI 응답 등록</summary>
+      <div class="field-content">
+        <textarea id="answer_${q.id}_${p.id}"
+          oninput="onAnswerInput('${q.id}','${p.id}',this.value)"
+          placeholder="AI 답변 전체를 드래그해서 붙여넣으세요. 출처·소스 섹션 포함 권장 — 인용 출처가 자동 분석됩니다.">${escapeH(c.aiAnswer)}</textarea>
+        <div class="field-actions">
+          <button class="read-only-action" onclick="loadCellAnswer('${q.id}','${p.id}',this)">시트 원문 보기</button>
+          <button onclick="analyzeSources('${q.id}','${p.id}')">출처 재분석</button>
+          <span class="parse-help">붙여넣으면 출처가 자동 분석됩니다.</span>
+        </div>
+        <div class="citation-list" id="citations_${q.id}_${p.id}">${citationRowsHtml(q.id,p.id,c)}</div>
+      </div>
+    </details>
+
+    <details class="review-block">
+      <summary>② 사람 검토·점수 수정 <span class="review-hint">AI 채점 후 이상 항목만 펼쳐 확인</span></summary>
+      <div class="review-body">
+    ${modelBPanelHtml(q,p,c)}
+
+
+    <div class="notes">
+      <div>
+        <label>개선 메모 (HR 액션)</label>
+        <textarea oninput="setText('${q.id}','${p.id}','note',this.value)"
+          placeholder="이 셀을 개선하려면 무엇을 해야 하는지 기록">${escapeH(c.note)}</textarea>
+      </div>
+    </div>
+      </div>
+    </details>
+    </div>`;
+
+  pl.addEventListener("toggle",()=>{
+    if(!pl.open||!pl.parentElement)return;
+    [...pl.parentElement.children].forEach(other=>{if(other!==pl&&other.matches("details.plat[open]"))other.open=false;});
+  });
+
+  return pl;
+}
+
+/* =====================================================================
+   채점·입력
+===================================================================== */
+function setScore(qid,pid,dim,v){
+  const c=DATA[key(qid,pid)];
+  c[dim]=(c[dim]===v)?null:v;
+  delete c.suggestions[dim];
+  if(dim==="pre"&&c.pre===0){c.acc=null;c.fav=null;c.src=null;c.sources=[];c.citedSources=[];c.sourcePanel="";}
+  markDirty(pid);
+  refreshAll();
+}
+function setBalanceCheck(qid,pid,field,val){
+  const c=DATA[key(qid,pid)];
+  if(!c.balanceEvidence)c.balanceEvidence={};
+  c.balanceEvidence[field]=val;
+  markDirty(pid);
+}
+function setText(qid,pid,f,v){
+  const c=DATA[key(qid,pid)];c[f]=v;
+  if(f==="note"){
+    c.reviewed=true;
+    const el=document.getElementById(`review_${qid}_${pid}`);if(el){el.textContent="검토 완료";el.classList.add("done");}
+  }
+  markDirty(pid);
+}
+function setMeta(k,v){DATA.__meta[k]=v;}
+function setCondition(pid,k,v){DATA.__meta.conditions[pid][k]=v;markDirty(pid);}
+
+function evaluationType(value){
+  const s=String(value||"");
+  if(s.includes("공식"))return"official";if(s.includes("언론"))return"press";
+  if(s.includes("인증"))return"cert";if(s.includes("리뷰")||s.includes("커뮤니티"))return"review";
+  if(s.includes("위키"))return"wiki";if(s.includes("포털"))return"portal";
+  if(s.includes("없음"))return"none";return"unknown";
+}
+function normalizeSourceLevel(value){
+  if(["none","weak","reference","trusted"].includes(value))return value;
+  const n=Number(value);
+  if(n===0)return"none";if(n===.5||n===50)return"weak";if(n===.75||n===75)return"reference";if(n===1||n===100)return"trusted";
+  return null;
+}
+function applyModelBItem(qid,pid,item){
+  const c=DATA[key(qid,pid)];if(!c||!item)return false;
+  c.reviewed=false;
+  let applied=false;
+  if(qid==="q1"||qid==="q2"){
+    const v=Number(item.discoverability);
+    if([0,10,15,20,25,30].includes(v)){c.discoverability=v;c.pre=v===0?0:2;applied=true;if(v===0){c.mention_rank=null;c.source_type="none";c.source_use="none";}}
+    const rank=item.mention_rank===null||item.mention_rank===""?null:Number(item.mention_rank);
+    if([1,3,6].includes(rank))c.mention_rank=rank;
+  }else if(qid==="q3"){
+    const v=Number(item.brand);if([0,8,15].includes(v)){c.brand=v;c.fav=v>=15?2:v>=8?1:0;applied=true;}
+  }else if(qid==="q4"){
+    const v=Number(item.iq);if([0,10,15,20].includes(v)){c.iq=v;c.acc=v>=20?2:v>=10?1:0;applied=true;}
+  }else if(qid==="q5"){
+    if(["none","conditional","recommend"].includes(item.rec_grade)){c.rec_grade=item.rec_grade;applied=true;}
+    const rc=item.rec_checks||{};c.rec_checks={reasons:!!rc.reasons,fit:!!rc.fit,cautions:!!rc.cautions};c.rec_score=recScore(c);c.fav=recScoreToLegacy(c.rec_score);
+  }
+  const st=normalizeSourceLevel(item.source_type),su=normalizeSourceLevel(item.source_use);
+  if(st)c.source_type=st;if(su)c.source_use=su;
+  if((qid==="q1"||qid==="q2")&&c.discoverability===0){c.source_type="none";c.source_use="none";}
+  c.source_score=(c.source_type&&c.source_use)?sourceScore20(c):null;
+  c.src=c.source_score===null?null:sourceScoreToLegacy(c.source_score);
+  const cited=Array.isArray(item["인용출처"])?item["인용출처"]:[];
+  if(cited.length){
+    c.citedSources=cited.map(x=>typeof x==="string"?{url:x,type:classifySource(x)}:{url:String(x.url||""),type:evaluationType(x["유형"]||x.type)||classifySource(x.url||"")});
+    c.sourcePanel=c.citedSources.map(s=>s.url).filter(Boolean).join("\n");
+  }
+  if(item["HR_개선제안"]){const note="[채점AI] "+item["HR_개선제안"];if(!c.note?.includes(note))c.note=c.note?c.note+"\n"+note:note;}
+  c.aiEvaluation=JSON.stringify(item,null,2);markDirty(pid);return applied;
+}
+function parseEvaluation(qid,pid){
+  const c=DATA[key(qid,pid)];
+  try{
+    const raw=c.aiEvaluation.trim().replace(/^```(?:json)?\s*/i,"").replace(/\s*```$/,"");
+    const obj=JSON.parse(raw);
+    if(!applyModelBItem(qid,pid,obj))throw new Error("score");
+    buildCards();refreshAll();toast("이 문항의 Model B 점수를 반영했습니다");
+  }catch(e){toast("JSON 형식을 확인하세요. 기존 수동 입력은 유지됩니다");}
+}
+
+async function loadCellAnswer(qid,pid,btn){
+  const reportId=VIEWING_REPORT_ID||ACTIVE_REPORT_ID;
+  if(!reportId){toast("먼저 회차를 불러오세요");return;}
+  const c=DATA[key(qid,pid)],old=btn.textContent;
+  try{
+    btn.disabled=true;btn.textContent="불러오는 중…";
+    const out=await apiGet("loadAnswer",{reportId,questionId:qid,platform:pid});
+    c.aiAnswer=out.answer||"";c.answerLoaded=true;
+    document.getElementById(`answer_${qid}_${pid}`).value=c.aiAnswer;
+    toast(c.aiAnswer?"원문을 불러왔습니다":"저장된 원문이 없습니다");
+  }catch(e){toast("원문 불러오기 실패 — "+e.message);}
+  finally{btn.disabled=false;btn.textContent=old;}
+}
+
+/* =====================================================================
+   출처 분석
+===================================================================== */
+function classifySource(url){
+  let host="";try{host=new URL(url).hostname.toLowerCase().replace(/^www\./,"")}catch(e){return"unknown";}
+  const hit=list=>list.some(d=>host===d||host.endsWith("."+d));
+  if(hit(["woomi.com","woomi.co.kr","woomi.recruiter.co.kr","lynn.co.kr"])||url.includes("youtube.com/@woomi")||url.includes("blog.naver.com/lynnblog")||url.includes("instagram.com/woomi_lynn"))return"official";
+  if(hit(["molit.go.kr","ftc.go.kr","khug.or.kr","kfinco.co.kr","cak.or.kr","go.kr"]))return"cert";
+  if(hit(["mk.co.kr","hankyung.com","dnews.co.kr","yna.co.kr","chosun.com","donga.com","joongang.co.kr"]))return"press";
+  if(hit(["teamblind.com","jobplanet.co.kr","jobplanet.com"]))return"review";
+  if(hit(["namu.wiki","wikipedia.org"]))return"wiki";
+  if(hit(["saramin.co.kr","incruit.com","catch.co.kr","jobkorea.co.kr","sankun.com","dealmatch.kr"]))return"portal";
+  return"unknown";
+}
+// ChatGPT가 출력하는 한국어/영어 사이트명 → 도메인 매핑
+const SITE_NAME_MAP={
+  // 공식
+  "우미건설":"woomi.com","우미린":"lynn.co.kr","우미 공식":"woomi.com",
+  // 인증·정부
+  "국토부":"molit.go.kr","국토교통부":"molit.go.kr","공정위":"ftc.go.kr","공정거래위원회":"ftc.go.kr",
+  "hug":"khug.or.kr","주택도시보증공사":"khug.or.kr","건설공제조합":"cak.or.kr",
+  // 언론
+  "매일경제":"mk.co.kr","한국경제":"hankyung.com","디지털뉴스":"dnews.co.kr","디지털 뉴스":"dnews.co.kr",
+  "연합뉴스":"yna.co.kr","조선일보":"chosun.com","동아일보":"donga.com","중앙일보":"joongang.co.kr",
+  "헤럴드경제":"heraldcorp.com","머니투데이":"mt.co.kr","이데일리":"edaily.co.kr",
+  "파이낸셜뉴스":"fnnews.com","아시아경제":"asiae.co.kr","뉴시스":"newsis.com",
+  // 리뷰·커뮤니티
+  "블라인드":"teamblind.com","잡플래닛":"jobplanet.co.kr","잡플레닛":"jobplanet.co.kr",
+  "크레딧잡":"credejob.com","잡코리아":"jobkorea.co.kr","사람인":"saramin.co.kr",
+  // 포털·취업정보
+  "자소설닷컴":"jasoseol.com","자소설":"jasoseol.com","산군":"sankun.com",
+  "딜매치":"dealmatch.kr","인크루트":"incruit.com","캐치":"catch.co.kr",
+  // SNS
+  "인스타그램":"instagram.com","유튜브":"youtube.com","페이스북":"facebook.com",
+  // 위키
+  "나무위키":"namu.wiki","위키백과":"wikipedia.org","wikipedia":"wikipedia.org",
+};
+function syncLegacySources(c){
+  c.sources=[...new Set((c.citedSources||[]).map(s=>s.type).filter(Boolean))];
+  autoSuggestSourceType(c);
+}
+function autoSuggestSourceType(c){
+  const list=c.citedSources||[];
+  if(!list.length)return;
+  const trusted=list.filter(s=>SOURCE_TAGS.find(t=>t.id===s.type)?.trust).length;
+  if(trusted/list.length>=0.5&&!c.source_type)c.source_type="trusted";
+  if(!c.source_use)c.source_use="reference";
+  c.source_score=sourceScore20(c);
+  c.src=sourceScoreToLegacy(c.source_score);
+}
+
+// 디바운스 타이머 맵 (qid__pid → timer)
+const _answerDebounce={};
+function onAnswerInput(qid,pid,value){
+  DATA[key(qid,pid)].aiAnswer=value;
+  markDirty(pid);
+  clearTimeout(_answerDebounce[qid+'__'+pid]);
+  _answerDebounce[qid+'__'+pid]=setTimeout(()=>analyzeSources(qid,pid,true),800);
+}
+
+function analyzeSources(qid,pid,silent=false){
+  const c=DATA[key(qid,pid)];if(!c)return;
+  const text=c.aiAnswer||'';
+  // 방법1: 마크다운 인라인 링크 [텍스트](URL) — Claude·Perplexity 형식
+  const mdUrls=(text.match(/\]\((https?:\/\/[^)]+)\)/g)||[])
+    .map(m=>m.slice(2,-1)).map(u=>u.replace(/[.,;:!?]+$/,""));
+  // 방법2: 완전한 URL (https://...)
+  const fullUrls=(text.match(/https?:\/\/[^\s<>"'\)\]]+/g)||[]).map(u=>u.replace(/[.,;:!?]+$/,""));
+  // 방법3: 도메인만 있는 줄 (molit.go.kr, - teamblind.com 등) — ChatGPT 소스 패널 형식
+  // 앞의 불릿(-·•*) 및 공백 제거 후 도메인 패턴 매칭
+  const domainRe=/^([a-z0-9-]+\.)+[a-z]{2,}(\/[^\s]*)?$/i;
+  const domainUrls=text.split(/\n/).map(l=>l.trim().replace(/^[-•·*\s]+/,"").trim())
+    .filter(l=>l&&!l.startsWith("http")&&domainRe.test(l))
+    .map(d=>"https://"+d);
+  // 방법4: 한국어·영문 사이트명 — ChatGPT가 한국어명으로 출력하는 경우 (정확히 일치할 때만)
+  // 불릿·특수문자·숫자 전처리 후 SITE_NAME_MAP 매핑
+  const nameUrls=[];
+  const textLines=text.split(/\n/).map(l=>l.trim().replace(/^[-•·*\s]+/,"").replace(/[*\[\]()·•\d\.。:：]/g,"").trim());
+  for(const line of textLines){
+    if(!line||line.length>30)continue; // 긴 줄은 본문이므로 제외
+    if(SITE_NAME_MAP[line])nameUrls.push("https://"+SITE_NAME_MAP[line]);
+  }
+  // 방법5: www. 인라인 도메인 — "www.jobplanet.co.kr우미건설..." 형식
+  const wwwUrls=(text.match(/www\.[a-z0-9\-]+(?:\.[a-z0-9\-]+)+(?:\/[^\s가-힣\]\)<>"']*)?/gi)||[])
+    .map(u=>"https://"+u.replace(/[.,;:!?]+$/,""))
+    .filter(u=>{try{const tld=new URL(u).hostname.split('.').pop();return/^[a-z]+$/i.test(tld);}catch(e){return false;}});
+  // 방법6: www. 없는 베어 도메인 — "jasoseol.com우미와..." 형식
+  // 알려진 TLD로 끝나는 도메인만 인식 (오인식 방지)
+  const knownTld=/\.(?:com|net|org|co\.kr|kr|go\.kr|or\.kr|re\.kr)(?:\/[^\s가-힣\]\)<>"']*)?/i;
+  const bareUrls=(text.match(/[a-z][a-z0-9\-]*\.(?:com|net|org|co\.kr|kr|go\.kr|or\.kr|re\.kr)(?:\/[^\s가-힣\]\)<>"']*)?/gi)||[])
+    .map(u=>"https://"+u.replace(/[.,;:!?]+$/,""))
+    .filter(u=>{try{const h=new URL(u).hostname;return!h.startsWith("www.")&&/^[a-z]+$/i.test(h.split('.').pop());}catch(e){return false;}});
+  // 도메인 기준 중복 제거 — 같은 사이트의 여러 페이지는 하나로
+  const allUrls=[...mdUrls,...fullUrls,...domainUrls,...nameUrls,...wwwUrls,...bareUrls];
+  const seenDomains=new Map();
+  allUrls.forEach(u=>{
+    try{
+      // 인코딩된 한국어 URL 처리: encodeURI로 안전하게 변환 후 파싱
+      const safeU=u.replace(/[가-힣]/g,c=>encodeURIComponent(c));
+      const host=new URL(safeU).hostname.toLowerCase().replace(/^www\./,"");
+      if(host&&!seenDomains.has(host))seenDomains.set(host,u);
+    }catch(e){
+      // URL 파싱 실패 시 그냥 추가
+      if(!seenDomains.has(u))seenDomains.set(u,u);
+    }
+  });
+  const urls=[...seenDomains.values()];
+  const previous=new Map((c.citedSources||[]).map(s=>[s.url,s.type]));
+  c.citedSources=urls.length?urls.map(url=>({url,type:previous.get(url)||classifySource(url)})):[];
+  syncLegacySources(c);markDirty(pid);refreshAll();
+  if(!silent)toast(urls.length?`출처 ${urls.length}개를 분석했습니다`:text.trim()?"인식된 URL·사이트명이 없습니다":"붙여넣을 내용이 없습니다");
+  else if(urls.length)toast(`출처 ${urls.length}개 자동 감지됨`,2000);
+}
+function setSourceType(qid,pid,index,type){const c=DATA[key(qid,pid)];if(!c.citedSources[index])return;c.reviewed=true;c.citedSources[index].type=type;syncLegacySources(c);markDirty(pid);refreshAll();}
+function removeCitation(qid,pid,index){const c=DATA[key(qid,pid)];c.citedSources.splice(index,1);syncLegacySources(c);markDirty(pid);refreshAll();}
+function sourceHint(c){
+  const types=(c.citedSources||[]).map(s=>s.type);
+  const trusted=types.some(id=>SOURCE_TAGS.find(t=>t.id===id)?.trust);
+  const weak=types.some(id=>!SOURCE_TAGS.find(t=>t.id===id)?.trust);
+  if(!(c.aiAnswer||"").trim())return"답변 미등록";
+  if(!types.length)return"출처 미감지";
+  return trusted&&!weak?"신뢰출처 확인":trusted&&weak?"출처 혼재":"취약출처 중심";
+}
+function citationRowsHtml(qid,pid,c){
+  if(!c.citedSources?.length)return`<span class="kpi-sub">분석된 출처가 없습니다.</span>`;
+  return c.citedSources.map((s,i)=>`<div class="citation-item"><a class="citation-url" href="${escapeA(s.url||"#")}" target="_blank" rel="noopener" title="${escapeA(s.url||"출처 없음")}">${escapeH(s.url||"출처 없음")}</a><select onchange="setSourceType('${qid}','${pid}',${i},this.value)">${SOURCE_TAGS.map(t=>`<option value="${t.id}" ${s.type===t.id?"selected":""}>${t.label}</option>`).join("")}</select><button class="citation-remove" onclick="removeCitation('${qid}','${pid}',${i})" title="삭제">×</button></div>`).join("");
+}
+
+/* =====================================================================
+   네트워크
+===================================================================== */
+function sheetConfigured(){
+  return /^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(GAS_URL)&&GAS_TOKEN!=="CHANGE_ME_SHARED_TOKEN";
+}
+function setNetworkBusy(busy,message=""){
+  NETWORK_BUSY=busy;
+  const el=document.getElementById("networkState");
+  if(el)el.textContent=message||(busy?"처리 중…":"연결됨");
+  document.querySelectorAll(".toolbar-action-btn").forEach(b=>b.disabled=busy);
+}
+async function apiGet(action,params={}){
+  if(!sheetConfigured())throw new Error("GAS_URL·GAS_TOKEN을 먼저 설정하세요");
+  const url=new URL(GAS_URL);
+  url.searchParams.set("action",action);url.searchParams.set("token",GAS_TOKEN);
+  Object.entries(params).forEach(([k,v])=>url.searchParams.set(k,v));
+  const res=await fetch(url,{method:"GET",cache:"no-store"});
+  if(!res.ok)throw new Error("HTTP "+res.status);
+  const out=await res.json();if(!out.ok)throw new Error(out.error||"요청 실패");return out;
+}
+async function apiPost(payload){
+  if(!sheetConfigured())throw new Error("GAS_URL·GAS_TOKEN을 먼저 설정하세요");
+  const res=await fetch(GAS_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({...payload,token:GAS_TOKEN})});
+  if(!res.ok)throw new Error("HTTP "+res.status);
+  const out=await res.json();if(!out.ok)throw new Error(out.error||"요청 실패");return out;
+}
+
+/* =====================================================================
+   자동 로드 (페이지 진입)
+===================================================================== */
+async function autoLoad(){
+  if(!sheetConfigured()){
+    document.getElementById('activeReportLabel').textContent='GAS 미설정 (로컬 모드)';
+    document.getElementById('activeStatusBadge').textContent='미연결';
+    document.getElementById('activeStatusBadge').className='tb-status-badge loading';
+    document.getElementById('networkState').textContent='GAS_URL 미설정 — 시트 저장 불가. 로컬 입력 및 JSON 저장은 가능합니다.';
+    // GAS 없어도 빈 카드는 렌더링
+    init();buildCards();
+    return;
+  }
+  try{
+    setNetworkBusy(true,'진행 회차 조회 중…');
+    const out=await apiGet('getActive');
+    ACTIVE_REPORT_ID=out.active;
+    VIEWING_REPORT_ID=ACTIVE_REPORT_ID;
+    VIEWING_STATUS='active';
+    document.getElementById('activeReportLabel').textContent=ACTIVE_REPORT_ID;
+    await loadReportData(ACTIVE_REPORT_ID);
+  }catch(e){
+    setNetworkBusy(false,'자동 로드 실패 — '+e.message);
+    document.getElementById('activeReportLabel').textContent='로드 실패';
+    document.getElementById('activeStatusBadge').textContent='연결 실패';
+    document.getElementById('activeStatusBadge').className='tb-status-badge loading';
+    toast('자동 로드 실패 — '+e.message+' (수동으로 [과거 조회] 사용 가능)');
+    // 연결 실패해도 빈 카드 렌더링 — 로컬 입력은 가능하게
+    init();buildCards();
+  }
+}
+
+async function loadReportData(reportId){
+  try{
+    const out=await apiGet('loadReport',{reportId});
+    init();
+    (out.rows||[]).forEach(r=>{
+      const k=key(r.questionId,r.platform);if(!DATA[k])return;
+      const cited=Array.isArray(r.citedSources)?r.citedSources.filter(s=>s&&typeof s==='object'):[];
+      Object.assign(DATA[k],{
+        pre:toScore(r.presence),acc:toScore(r.accuracy),fav:toScore(r.balance),src:toScore(r.source),
+        aiEvaluation:r.aiEvaluation||'',
+        citedSources:cited,
+        sources:[...new Set(cited.map(s=>s.type))],
+        note:r.note||'',
+        reviewed:r.reviewed===true||r.reviewed==='true'
+      });
+      DATA.__meta.conditions[r.platform]=parseCondition(r.measureCondition);
+    });
+    buildCards();
+    applyViewingState();
+    setNetworkBusy(false,'불러왔습니다');
+    toast('데이터를 불러왔습니다');
+  }catch(e){
+    setNetworkBusy(false,'불러오기 실패');
+    toast('불러오기 실패 — '+e.message);
+    throw e;
+  }
+}
+
+/* =====================================================================
+   수동 새로고침
+===================================================================== */
+async function manualRefresh(){
+  const reportId=VIEWING_REPORT_ID||ACTIVE_REPORT_ID;
+  if(!reportId){toast('불러올 회차가 없습니다');return;}
+  if(LOCAL_EDITS.size>0){
+    const ok=confirm('저장하지 않은 입력은 갱신으로 사라질 수 있습니다. 계속할까요?');
+    if(!ok)return;
+  }
+  setNetworkBusy(true,'새로고침 중…');
+  try{await loadReportData(reportId);}
+  catch(e){}
+}
+
+/* =====================================================================
+   병합 저장 (플랫폼 단위)
+===================================================================== */
+function platformRows(pid){
+  const p=PLATFORMS.find(x=>x.id===pid);
+  // plan은 PLATFORMS에서 고정값으로 가져와 measureCondition에 병합 저장
+  const condition=JSON.stringify({...(DATA.__meta.conditions[pid]||{}),plan:p?.plan||''});
+  return QUESTIONS.map(q=>{
+    const c=DATA[key(q.id,pid)];
+    const be=c.balanceEvidence||{};
+    const beText=(be.finance||be.negative||be.negContext)?
+      `\n[균형성근거: 재무안정성=${be.finance?'Y':'N'} 부정이슈=${be.negative?'Y':'N'} 맥락=${be.negContext||'-'}]`:'';
+    return {
+      questionId:q.id,platform:pid,
+      presence:c.pre,accuracy:c.acc,balance:c.fav,source:c.src,
+      aiAnswer:c.aiAnswer||'',aiEvaluation:c.aiEvaluation||'',
+      citedSources:c.citedSources||[],
+      reviewed:!!c.reviewed,
+      note:(c.note||'')+beText,
+      recorder:'',measureCondition:condition
+    };
+  });
+}
+async function savePlatformById(pid){
+  const reportId=VIEWING_REPORT_ID||ACTIVE_REPORT_ID;
+  if(!reportId){toast('저장할 회차가 없습니다');return;}
+  if(VIEWING_STATUS==='closed'){toast('마감된 회차에는 저장할 수 없습니다');return;}
+  const platName=PLATFORMS.find(p=>p.id===pid)?.name||pid;
+  try{
+    setNetworkBusy(true,`${platName} 저장 중…`);
+    await apiPost({action:'savePlatform',reportId,platform:pid,rows:platformRows(pid)});
+    markClean(pid);
+    setNetworkBusy(false,'저장됨');
+    toast(`${platName} 저장 완료 — ${QUESTIONS.length}개 셀이 시트에 반영되었습니다`);
+  }catch(e){
+    setNetworkBusy(false,'저장 실패 · 입력 유지됨');
+    toast('저장 실패 — '+e.message);
+  }
+}
+
+/* =====================================================================
+   회차 마감
+===================================================================== */
+function _nextCycleId(){
+  const n=new Date();const q=Math.floor(n.getMonth()/3)+1;return n.getFullYear()+'-Q'+q;
+}
+async function closeActiveReport(){
+  if(!ACTIVE_REPORT_ID){toast('진행 회차가 없습니다');return;}
+  if(!confirm(`진행 회차 "${ACTIVE_REPORT_ID}"를 마감하면 읽기전용이 되고 새 회차가 시작됩니다. 진행할까요?`))return;
+  const by=prompt('마감자 이름을 입력하세요 (선택사항, REPORTS에 기록됩니다):','')||'';
+  const defaultNew=_nextCycleId();
+  const newId=(prompt('새 회차 ID를 입력하세요:',defaultNew)||defaultNew).trim();
+  if(!newId){toast('새 회차 ID가 비어 있어 마감을 취소했습니다');return;}
+  try{
+    setNetworkBusy(true,'회차 마감 중…');
+    const out=await apiPost({action:'closeReport',reportId:ACTIVE_REPORT_ID,newReportId:newId,by});
+    const prevId=ACTIVE_REPORT_ID;
+    ACTIVE_REPORT_ID=out.active;
+    VIEWING_REPORT_ID=out.active;
+    VIEWING_STATUS='active';
+    document.getElementById('activeReportLabel').textContent=ACTIVE_REPORT_ID;
+    LOCAL_EDITS.clear();
+    init();buildCards();applyViewingState();
+    setNetworkBusy(false,'마감 완료');
+    toast(`회차 "${prevId}"를 마감했습니다. 새 회차: ${ACTIVE_REPORT_ID}`);
+  }catch(e){
+    setNetworkBusy(false,'마감 실패');
+    toast('마감 실패 — '+e.message);
+  }
+}
+
+/* =====================================================================
+   과거 조회 패널
+===================================================================== */
+function toggleHistoryPanel(){
+  const panel=document.getElementById('historyPanel');
+  const isOpen=panel.classList.contains('open');
+  panel.classList.toggle('open',!isOpen);
+  document.getElementById('historyToggleBtn').textContent=isOpen?'과거 조회 ▸':'과거 조회 ▴';
+  if(!isOpen)recheckReports();
+}
+async function recheckReports(){
+  if(!sheetConfigured()){toast('GAS 설정이 필요합니다');return;}
+  try{
+    setNetworkBusy(true,'회차 목록 조회 중…');
+    const out=await apiGet('listReports');
+    REPORTS=out.reports||[];
+    const sel=document.getElementById('historySelect');
+    const cur=sel.value;
+    sel.innerHTML=`<option value="">회차를 선택하세요</option>`+
+      REPORTS.map(r=>`<option value="${escapeA(r.reportId)}" ${r.reportId===cur?'selected':''}>${escapeH(r.reportId)} · ${r.status||'unknown'}</option>`).join('');
+    setNetworkBusy(false,'목록 업데이트됨');
+  }catch(e){setNetworkBusy(false,'조회 실패');toast('목록 조회 실패 — '+e.message);}
+}
+async function loadHistoryReport(){
+  const id=document.getElementById('historySelect').value;
+  if(!id){toast('조회할 회차를 선택하세요');return;}
+  if(LOCAL_EDITS.size>0){
+    const ok=confirm('저장하지 않은 입력이 있습니다. 다른 회차로 이동하면 사라집니다. 계속할까요?');
+    if(!ok)return;
+  }
+  try{
+    const rep=REPORTS.find(r=>r.reportId===id);
+    VIEWING_REPORT_ID=id;
+    VIEWING_STATUS=rep?.status||'closed';
+    setNetworkBusy(true,'과거 회차 불러오는 중…');
+    await loadReportData(id);
+  }catch(e){}
+}
+async function reopenHistoryReport(){
+  const id=document.getElementById('historySelect').value;
+  if(!id){toast('마감 해제할 회차를 선택하세요');return;}
+  if(!confirm('마감된 데이터를 수정하면 추이 비교 기준선이 바뀔 수 있습니다. 계속할까요?'))return;
+  try{
+    setNetworkBusy(true,'마감 해제 중…');
+    await apiPost({action:'reopenReport',reportId:id});
+    VIEWING_STATUS='reopened';
+    const rep=REPORTS.find(r=>r.reportId===id);if(rep)rep.status='reopened';
+    applyViewingState();
+    setNetworkBusy(false,'마감 해제됨');
+    toast('마감이 해제되었습니다. [이 AI 저장]으로 수정 내용을 반영하세요.');
+    recheckReports().catch(()=>{});
+  }catch(e){setNetworkBusy(false,'마감 해제 실패');toast('마감 해제 실패 — '+e.message);}
+}
+function returnToActive(){
+  if(!ACTIVE_REPORT_ID){toast('진행 회차 정보가 없습니다. [새로고침]을 눌러주세요');return;}
+  if(LOCAL_EDITS.size>0){
+    const ok=confirm('저장하지 않은 입력이 있습니다. 계속할까요?');if(!ok)return;
+  }
+  VIEWING_REPORT_ID=ACTIVE_REPORT_ID;VIEWING_STATUS='active';
+  setNetworkBusy(true,'진행 회차 불러오는 중…');
+  loadReportData(ACTIVE_REPORT_ID).catch(()=>{});
+}
+
+/* =====================================================================
+   보기 상태 적용 (잠금·경고 배너)
+===================================================================== */
+function applyViewingState(){
+  const isClosed=VIEWING_STATUS==='closed';
+  const isReopened=VIEWING_STATUS==='reopened';
+  const isActive=VIEWING_STATUS==='active';
+
+  document.getElementById('lockedBanner').classList.toggle('show',isClosed);
+  document.getElementById('reopenedBanner').classList.toggle('show',isReopened);
+  document.body.classList.toggle('report-locked',isClosed);
+
+  const badge=document.getElementById('activeStatusBadge');
+  const isHistory=VIEWING_REPORT_ID&&VIEWING_REPORT_ID!==ACTIVE_REPORT_ID;
+  if(isHistory){
+    badge.textContent=`조회: ${VIEWING_STATUS||'?'}`;
+    badge.className='tb-status-badge '+(isClosed?'closed':isReopened?'reopened':'');
+  }else{
+    badge.textContent=isActive?'진행중':(VIEWING_STATUS||'?');
+    badge.className='tb-status-badge '+(isClosed?'closed':isReopened?'reopened':'');
+  }
+
+  PLATFORMS.forEach(p=>{
+    const btn=document.getElementById('savePlat_'+p.id);
+    if(btn)btn.disabled=isClosed;
+  });
+}
+
+/* =====================================================================
+   점수 계산 · 렌더링
+===================================================================== */
+function cellResult(c,qid){
+  const cfg=qid==="q1"||qid==="q2"?{field:"discoverability",max:30}:qid==="q3"?{field:"brand",max:15}:qid==="q4"?{field:"iq",max:20}:{field:"rec_score",max:15};
+  const core=c?.[cfg.field];
+  const excluded=(qid==="q1"||qid==="q2")&&core===0;
+  const complete=typeof core==="number"&&typeof c?.source_score==="number";
+  return{excluded,complete,total:complete?core:null,max:cfg.max,source:typeof c?.source_score==="number"?c.source_score:null};
+}
+function cellTotal(c,qid){return cellResult(c,qid).total;}
+function statusOf(r){if(r.excluded)return"red";if(!r.complete)return"grey";const pct=r.max?r.total/r.max*100:0;if(pct<40)return"red";if(pct<60)return"amber";return"green";}
+function statusLabel(r){if(r.excluded)return"배제";if(!r.complete)return"미평가";const pct=r.max?r.total/r.max*100:0;if(pct<40)return"시급";if(pct<60)return"보완";return"양호";}
+function pctText(v){return v===null||v===undefined||Number.isNaN(v)?"N/A":`${Math.round(v*10)/10}%`;}
+function average(vals){
+  const valid=vals.filter(v=>typeof v==="number"&&!Number.isNaN(v));
+  if(!valid.length)return null;
+  return valid.reduce((a,b)=>a+b,0)/valid.length;
+}
+function modelBForPlatform(pid){
+  const q1=DATA[key("q1",pid)],q2=DATA[key("q2",pid)],q3=DATA[key("q3",pid)],q4=DATA[key("q4",pid)],q5=DATA[key("q5",pid)];
+  const discVals=[q1?.discoverability,q2?.discoverability].filter(v=>typeof v==="number");
+  const discoverability=discVals.length===2?Math.round(average(discVals)):null;
+  const iq=typeof q4?.iq==="number"?q4.iq:null;
+  const sourceVals=QUESTIONS.map(q=>DATA[key(q.id,pid)]).map(c=>c?.source_score).filter(v=>typeof v==="number");
+  const source=sourceVals.length===QUESTIONS.length?Math.round(average(sourceVals)):null;
+  const brand=typeof q3?.brand==="number"?q3.brand:null;
+  const recommendation=typeof q5?.rec_score==="number"?q5.rec_score:null;
+  const areas={discoverability,iq,source,brand,recommendation};
+  const complete=Object.values(areas).every(v=>typeof v==="number");
+  const score=complete?Object.values(areas).reduce((a,b)=>a+b,0):null;
+  return{areas,complete,score};
+}
+function modelBCompletedPlatforms(){
+  return PLATFORMS.map(p=>({p,geo:modelBForPlatform(p.id)})).filter(x=>x.geo.complete);
+}
+function geoCellScore(r){
+  if(!r.complete)return null;
+  if(r.excluded)return 0;
+  return r.total/r.max*100;
+}
+function getGeoInterpretation(score){
+  if(score===null||score===undefined||Number.isNaN(score))return"평가 데이터가 부족합니다.";
+  if(score>=90)return"AI 채용 브랜드 노출·추천 수준이 우수합니다.";
+  if(score>=80)return"전반적으로 양호하나 일부 정보·출처 보완이 필요합니다.";
+  if(score>=70)return"AI 답변 내 노출·평판 개선이 필요합니다.";
+  if(score>=60)return"공식 콘텐츠·신뢰 출처 강화가 필요합니다.";
+  return"AI 답변 내 존재감이 낮아 우선 개선이 필요합니다.";
+}
+function platformWorkflow(pid){
+  let answers=0,scored=0,excluded=0,notes=0;
+  QUESTIONS.forEach(q=>{
+    const c=DATA[key(q.id,pid)],r=cellResult(c,q.id);
+    if(c.aiAnswer&&c.aiAnswer.trim())answers++;
+    if(r.complete)scored++;
+    if(r.excluded)excluded++;
+    if(c.note&&c.note.trim())notes++;
+  });
+  return{answers,scored,excluded,notes,total:QUESTIONS.length};
+}
+function renderWorkflow(pid){
+  const el=document.getElementById("wf_"+pid);
+  if(!el)return;
+  const wf=platformWorkflow(pid);
+  const complete=wf.scored===wf.total;
+  el.innerHTML=[
+    `<span class="wf-chip ${wf.answers===wf.total?'done':wf.answers?'warn':''}">답변 ${wf.answers}/${wf.total}</span>`,
+    `<span class="wf-chip ${complete?'done':wf.scored?'warn':''}">채점 ${wf.scored}/${wf.total}</span>`,
+    `<span class="wf-chip ${wf.excluded?'warn':''}">배제 ${wf.excluded}</span>`,
+    `<span class="wf-chip ${wf.notes?'done':''}">메모 ${wf.notes}</span>`
+  ].join("");
+}
+function calculateExecutiveKpis(){
+  const completed=modelBCompletedPlatforms();
+  const overall=completed.length?average(completed.map(x=>x.geo.score)):null;
+  const q12=[];
+  PLATFORMS.forEach(p=>["q1","q2"].forEach(qid=>{
+    const c=DATA[key(qid,p.id)],r=cellResult(c,qid);
+    if(r.complete)q12.push({c,r});
+  }));
+  const nonNamedRate=q12.length?q12.filter(x=>x.c.discoverability>0).length/q12.length*100:null;
+  const rankable=q12.filter(x=>typeof x.c.mention_rank==="number"||typeof x.c.mentionRank==="number");
+  const top5Rate=rankable.length?rankable.filter(x=>(x.c.mention_rank??x.c.mentionRank)<=5).length/rankable.length*100:null;
+  const q5=PLATFORMS.map(p=>DATA[key("q5",p.id)]).filter(c=>typeof c?.rec_score==="number");
+  const recommendationRate=q5.length?q5.filter(c=>c.rec_score>=8).length/q5.length*100:null;
+  return{overall,completed:completed.length,total:PLATFORMS.length,nonNamedRate,top5Rate,recommendationRate};
+}
+
+function paintSeg(qid,pid,dim){
+  const c=DATA[key(qid,pid)],seg=document.getElementById(`seg_${qid}_${pid}_${dim}`);if(!seg)return;
+  [...seg.children].forEach((b,i)=>{b.className="";if(c[dim]===i)b.classList.add("on"+i);else if(c[dim]===null&&c.suggestions?.[dim]===i)b.classList.add("suggested");});
+  const gated=c.pre===0&&dim!=="pre";
+  document.getElementById(`dim_${qid}_${pid}_${dim}`)?.classList.toggle("gated",gated);
+}
+function paintSources(qid,pid){
+  const c=DATA[key(qid,pid)];
+  const hint=document.getElementById(`hint_${qid}_${pid}`);
+  if(hint)hint.textContent=sourceHint(c);
+  const cl=document.getElementById(`citations_${qid}_${pid}`);
+  if(cl)cl.innerHTML=citationRowsHtml(qid,pid,c);
+}
+function badge(r){
+  const s=statusOf(r);
+  const map={red:["var(--red-bg)","var(--red)"],amber:["var(--amber-bg)","var(--amber)"],green:["var(--green-bg)","var(--green)"],grey:["var(--grey-bg)","var(--grey)"]};
+  return map[s];
+}
+
+function refreshAll(){
+  let done=0,sum=0;
+  QUESTIONS.forEach(q=>{
+    let qSum=0,qDone=0,qExcluded=0;
+    PLATFORMS.forEach(p=>{
+      paintSources(q.id,p.id);
+      const c=DATA[key(q.id,p.id)],r=cellResult(c,q.id);
+      const pt=document.getElementById(`pt_${q.id}_${p.id}`);
+      const bm=badge(r);pt.style.background=bm[0];pt.style.color=bm[1];
+      pt.textContent=r.excluded?"배제 · 출처 0/20":r.complete?`${r.total}/${r.max} · 출처 ${r.source}/20`:"미평가";
+      pt.classList.toggle("is-unrated",!r.complete&&!r.excluded);
+      const review=document.getElementById(`review_${q.id}_${p.id}`);
+      if(review){review.textContent=c.reviewed?"검토 완료":"검토 전";review.classList.toggle("done",!!c.reviewed);}
+      document.getElementById(`plat_${q.id}_${p.id}`)?.classList.toggle("excluded",r.excluded);
+      document.getElementById(`citations_${q.id}_${p.id}`)?.closest('.field-content')?.classList.toggle("gated",r.excluded);
+      if(r.complete)done++;if(r.excluded)qExcluded++;else if(r.complete){sum+=r.total;qSum+=r.total;qDone++;}
+    });
+    const qs=document.getElementById("qsc_"+q.id);if(!qs)return;
+    const qt=qDone?Math.round(qSum/qDone*10)/10:null;
+    const qMax=(q.id==="q1"||q.id==="q2")?30:q.id==="q3"?15:q.id==="q4"?20:15;
+    const bm=badge(qt===null?{complete:false,excluded:false,total:null,max:qMax}:{complete:true,excluded:false,total:qt,max:qMax});
+    qs.style.background=bm[0];qs.style.color=bm[1];
+    qs.textContent=qDone?`평균 ${qt}${qExcluded?` · 배제 ${qExcluded}`:""}`:qExcluded?`배제 ${qExcluded}`:"—";
+  });
+  PLATFORMS.forEach(p=>{
+    let x=0;
+    QUESTIONS.forEach(q=>{const r=cellResult(DATA[key(q.id,p.id)],q.id);if(r.excluded)x++;});
+    const geo=modelBForPlatform(p.id);
+    const el=document.getElementById("pgsc_"+p.id);
+    if(el)el.textContent=geo.complete?`GEO ${geo.score}/100${x?` · 배제 ${x}`:""}`:x?`배제 ${x}`:"미평가";
+    renderWorkflow(p.id);
+  });
+  const kpi=calculateExecutiveKpis();
+  const geo=kpi.overall===null?0:Math.round(kpi.overall*10)/10;
+  document.getElementById("gNum").textContent=kpi.overall===null?"—":geo;
+  document.getElementById("gDen").textContent='/100';
+  const pct=Math.round(kpi.completed/kpi.total*100);
+  document.getElementById("gPct").textContent=`진단 완료 ${pct}% · ${getGeoInterpretation(kpi.overall)}`;
+  document.getElementById("gBar").style.width=(kpi.overall===null?0:Math.max(0,Math.min(100,kpi.overall)))+"%";
+  const nn=document.getElementById("nonNamedRate");if(nn)nn.textContent=pctText(kpi.nonNamedRate);
+  const t5=document.getElementById("top5Rate");if(t5)t5.textContent=`Top5 추천률: ${pctText(kpi.top5Rate)}${kpi.top5Rate===null?" · 순위 입력값 필요":""}`;
+  const rr=document.getElementById("recommendRate");if(rr)rr.textContent=pctText(kpi.recommendationRate);
+  const ge=document.getElementById("geoExplain");if(ge)ge.textContent=getGeoInterpretation(kpi.overall);
+  buildMatrix();buildPriority();buildInsights();buildSourceKPI();
+}
+
+function buildMatrix(){
+  // 2단 헤더: 1행=AI명(colspan 2), 2행=무료|유료
+  const thead=document.querySelector(".matrix thead");thead.innerHTML="";
+
+  // 행1: AI 그룹 이름 (colspan 2씩)
+  const aiNames=[...new Set(PLATFORMS.map(p=>p.name))];
+  const tr1=document.createElement("tr");tr1.className="mat-group";
+  tr1.innerHTML=`<th class="qh" rowspan="2">질문 × 플랫폼</th>`+
+    aiNames.map(n=>`<th colspan="2">${n}</th>`).join("");
+  thead.appendChild(tr1);
+
+  // 행2: 무료 | 유료
+  const tr2=document.createElement("tr");tr2.className="mat-plan";
+  tr2.innerHTML=PLATFORMS.map(p=>{
+    const isPaid=p.plan.includes('유료');
+    return `<th class="${isPaid?'plan-paid':'plan-free'}">${p.plan}</th>`;
+  }).join("");
+  thead.appendChild(tr2);
+
+  const body=document.getElementById("matBody");body.innerHTML="";
+  QUESTIONS.forEach(q=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<th class="qh">${q.tag}. ${q.title}</th>`+PLATFORMS.map(p=>{
+      const r=cellResult(DATA[key(q.id,p.id)],q.id),s=statusOf(r);
+      return `<td><div class="cell ${s}" onclick="openCell('${q.id}','${p.id}')">${r.excluded?"배제":r.complete?r.total+"/"+r.max:"–"}<small>${r.complete?"출처 "+r.source+"/20":statusLabel(r)}</small></div></td>`;
+    }).join("");
+    body.appendChild(tr);
+  });
+  const foot=document.getElementById("matFoot");
+  foot.innerHTML=`<th>플랫폼 GEO(/100)</th>`+PLATFORMS.map(p=>{
+    const geo=modelBForPlatform(p.id);
+    const isPaid=p.plan.includes('유료');
+    return`<td style="color:${isPaid?'var(--green)':'var(--muted)'}">${geo.complete?geo.score:"–"}</td>`;
+  }).join("");
+}
+function openCell(qid,pid){
+  const group=document.getElementById("platformGroup_"+pid),cell=document.getElementById(`plat_${qid}_${pid}`);
+  if(group)group.open=true;if(cell){cell.open=true;cell.scrollIntoView({behavior:"smooth",block:"center"});}
+}
+
+function buildPriority(){
+  const root=document.getElementById("priList"),rows=[];
+  const defs=[
+    {k:"discoverability",label:"비지명 노출",max:30,threshold:18,action:"비지명 노출용 채용·언론 콘텐츠 확대"},
+    {k:"iq",label:"정보품질",max:20,threshold:12,action:"회사개요·복지·문화·재무 정보 정비"},
+    {k:"source",label:"출처신뢰성",max:20,threshold:12,action:"공식·보도자료·공시·인증 연결 강화"},
+    {k:"brand",label:"고용브랜드",max:15,threshold:8,action:"우미 고유 브랜드 차별 메시지 개발"},
+    {k:"recommendation",label:"추천",max:15,threshold:8,action:"지원자 관점 추천 근거·적합 직무 콘텐츠 보완"}
+  ];
+  PLATFORMS.forEach(p=>{
+    const geo=modelBForPlatform(p.id);
+    defs.forEach(d=>{
+      const val=geo.areas[d.k];
+      if(typeof val!=="number")return;
+      if(val<d.threshold)rows.push({p,d,val,pct:val/d.max*100,action:d.action});
+    });
+    ["q1","q2"].forEach(qid=>{
+      const c=DATA[key(qid,p.id)],r=cellResult(c,qid);
+      if(r.complete&&r.excluded)rows.push({p,d:{label:"미노출",max:30},val:0,pct:0,action:"AI 답변에 우미건설이 누락됨 — 비지명 노출 자산 확보 최우선"});
+    });
+  });
+  if(!rows.length){root.innerHTML=`<div class="pri-empty">아직 Model B 기준 개선과제가 없습니다. 채점이 완료되면 영역별 임계값 기준으로 자동 정렬됩니다.</div>`;return;}
+  rows.sort((a,b)=>a.pct-b.pct);
+  root.innerHTML=rows.slice(0,12).map((r,i)=>{
+    const col=r.pct<40?"var(--red)":r.pct<60?"var(--amber)":"var(--grey)";
+    return `<div class="pri-row" style="border-left-color:${col}">
+      <div class="pri-rank">${i+1}</div>
+      <div class="pri-main">
+        <div class="pri-where"><b>${r.d.label}</b> · ${r.p.name} ${r.p.plan}</div>
+        <div class="pri-action">${escapeH(r.action)}</div>
+      </div>
+      <div class="pri-flags"><span class="flag" style="background:var(--amber-bg);color:var(--amber)">${Math.round(r.pct)}%</span></div>
+      <div class="pri-sc" style="color:${col}">${r.val}/${r.d.max}</div>
+    </div>`;
+  }).join("");
+}
+
+function buildInsights(){
+  document.getElementById("insPlat").innerHTML=PLATFORMS.map(p=>{
+    const geo=modelBForPlatform(p.id);
+    return barRowMax(p.name+" "+p.plan,geo.score,100,geo.complete?0:1);
+  }).join("");
+  const completed=modelBCompletedPlatforms();
+  const areaDefs=[
+    ["discoverability","비지명 노출",30],
+    ["iq","정보품질",20],
+    ["source","출처신뢰성",20],
+    ["brand","고용브랜드",15],
+    ["recommendation","추천",15]
+  ];
+  document.getElementById("insQ").innerHTML=areaDefs.map(([k,label,max])=>{
+    const vals=completed.map(x=>x.geo.areas[k]).filter(v=>typeof v==="number");
+    return barRowMax(label,vals.length?average(vals):null,max,0);
+  }).join("");
+}
+function barRowMax(name,val,max,missing=0){
+  if(val===null||val===undefined)return`<div class="ins-bar"><div class="nm">${name}</div><div class="track"></div><div class="v">${missing?"미완료":"–"}</div></div>`;
+  const pct=val/max*100,col=pct<40?"var(--red)":pct<60?"var(--amber)":"var(--green)";
+  return`<div class="ins-bar"><div class="nm">${name}</div><div class="track"><i style="width:${Math.max(0,Math.min(100,pct))}%;background:${col}"></i></div><div class="v">${Math.round(val*10)/10}/${max}</div></div>`;
+}
+function buildSourceKPI(){
+  let denom=0,trustedCells=0,officialCells=0,weakOnly=0;
+  const counts=Object.fromEntries(SOURCE_TAGS.map(t=>[t.id,0]));
+  QUESTIONS.forEach(q=>{
+    PLATFORMS.forEach(p=>{
+      const c=DATA[key(q.id,p.id)],r=cellResult(c,q.id);
+      if(!r.complete||r.excluded)return;
+      denom++;
+      let hasTrusted=false,hasOfficial=false;
+      (c.citedSources||[]).forEach(s=>{
+        if(counts[s.type]!==undefined)counts[s.type]++;
+        else counts.unknown++;
+        if(SOURCE_TAGS.find(t=>t.id===s.type)?.trust)hasTrusted=true;
+        if(s.type==="official")hasOfficial=true;
+      });
+      if(c.source_type==="trusted")trustedCells++;
+      if(hasOfficial)officialCells++;
+      const types=(c.citedSources||[]).map(s=>s.type);
+      if(types.length&&!types.some(t=>SOURCE_TAGS.find(x=>x.id===t)?.trust))weakOnly++;
+    });
+  });
+  const trustRate=denom?Math.round(trustedCells/denom*1000)/10:null;
+  const officialRate=denom?Math.round(officialCells/denom*1000)/10:null;
+  document.getElementById("trustRate").textContent=pctText(trustRate);
+  document.getElementById("officialRate").textContent=pctText(officialRate);
+  document.getElementById("weakOnly").textContent=`취약 출처 단독 노출 ${weakOnly}건`;
+  document.getElementById("officialMissing").textContent=`공식 채널 미인용 ${Math.max(0,denom-officialCells)}건`;
+  const max=Math.max(1,...Object.values(counts));
+  document.getElementById("sourceDist").innerHTML=SOURCE_TAGS.map(t=>`<div class="ins-bar"><div class="nm">${t.label.split("(")[0]}</div><div class="track"><i style="width:${counts[t.id]/max*100}%;background:${t.trust?"var(--green)":t.id==="unknown"?"var(--grey)":"var(--amber)"}"></i></div><div class="v">${counts[t.id]}</div></div>`).join("");
+}
+
+/* =====================================================================
+   유틸
+===================================================================== */
+function escapeH(s){return(s||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+function escapeA(s){return escapeH(s).replace(/"/g,"&quot;");}
+function toScore(v){return v===""||v===null||v===undefined?null:Number(v);}
+function parseCondition(text){try{return{...blankConditions()["gpt_free"],...JSON.parse(text||"{}")}}catch(e){return{model:text||""}}}
+
+function fillSample(){
+  if(!confirm("현재 입력된 데이터를 초기화하고 예시 데이터를 불러올까요?"))return;
+  // k() replaced by key()
+  const now=new Date().toISOString().slice(0,10);
+  PLATFORMS.forEach(p=>{
+    DATA.__meta.conditions[p.id]={accountType:"audit",memory:"off",model:p.plan.includes("유료")?"pro":"free",measuredAt:now};
+  });
+  QUESTIONS.forEach(q=>{
+    PLATFORMS.forEach((p,index)=>{
+      const paid=p.plan.includes("유료"),c=blankCell();
+      c.source_type=paid?"trusted":"reference";c.source_use=paid?"trusted":"weak";c.source_score=sourceScore20(c);c.src=sourceScoreToLegacy(c.source_score);
+      if(q.id==="q1"||q.id==="q2"){
+        c.discoverability=q.id==="q1"&&!paid&&index%4===0?0:(paid?25:15);c.pre=c.discoverability===0?0:2;c.mention_rank=c.discoverability>=25?3:c.discoverability>0?6:null;
+        if(c.discoverability===0){c.source_type="none";c.source_use="none";c.source_score=0;c.src=0;}
+      }else if(q.id==="q3"){c.brand=paid?15:8;c.fav=paid?2:1;}
+      else if(q.id==="q4"){c.iq=paid?20:15;c.acc=paid?2:1;}
+      else{c.rec_grade=paid?"recommend":"conditional";c.rec_checks={reasons:paid,fit:paid,cautions:paid};c.rec_score=recScore(c);c.fav=recScoreToLegacy(c.rec_score);}
+      c.note=`예시 (${p.id})`;DATA[key(q.id,p.id)]=c;
+      LOCAL_EDITS.add(p.id);
+    });
+  });
+  VIEWING_REPORT_ID=VIEWING_REPORT_ID||"(예시)";
+  ACTIVE_REPORT_ID=ACTIVE_REPORT_ID||"(예시)";
+  document.getElementById("activeReportLabel").textContent=ACTIVE_REPORT_ID;
+  buildCards();
+  buildMatrix();
+  refreshAll();
+  PLATFORMS.forEach(p=>markDirty(p.id));
+  toast("예시 데이터가 로드되었습니다 (저장 전 상태)");
+}
+
+async function copyText(btn,text,label){
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText)await navigator.clipboard.writeText(text);
+    else{var ta=document.createElement("textarea");ta.value=text;ta.style.cssText="position:fixed;opacity:0";document.body.appendChild(ta);ta.select();var ok=document.execCommand("copy");ta.remove();if(!ok)throw new Error();}
+    if(btn&&btn.tagName==="BUTTON"){var old=btn.textContent;btn.textContent="복사됨";setTimeout(function(){btn.textContent=old;},1400);}
+    toast(label+"가 복사되었습니다");
+  }catch(e){toast("복사하지 못했습니다. 클립보드 권한을 확인하세요");}
+}
+function copyQPromptBtn(event,qid){
+  event.stopPropagation();
+  var btn=event.currentTarget;
+  var q=QUESTIONS.find(function(x){return x.id===qid;});
+  copyText(btn,q.prompt,"프롬프트");
+}
+function copyFollowupBtn(event,type){
+  event.stopPropagation();
+  var btn=event.currentTarget;
+  copyText(btn,type==="presence"?PRESENCE_FOLLOWUP_PROMPT:SOURCE_FOLLOWUP_PROMPT,"후속 프롬프트");
+}
+async function copyBatchScoringPrompt(pid,btn){
+  var p=PLATFORMS.find(function(x){return x.id===pid;});
+  var factMatch=SCORING_PROMPT.match(/(\[검증된 사실[\s\S]*?)(?=\[AI 답변\])/);
+  var facts=factMatch?factMatch[1].trim():"";
+  var batchPrompt="너는 채용 평판 감사의 채점 보조자다. 아래 [검증된 사실]과 [채점 기준]을 기준으로 각 질문별 AI 답변을 채점하라.\n\n"+facts+"\n\n";
+  batchPrompt+="[플랫폼: "+p.name+" "+p.plan+"]\n\n";
+  QUESTIONS.forEach(function(q){
+    var c=DATA[key(q.id,pid)];
+    var answer=(c&&c.aiAnswer?c.aiAnswer:"").trim();
+    batchPrompt+="---\n["+q.tag+" "+q.title+"] 질문: \""+q.prompt+"\"\n[AI 답변]\n\"\"\"\n"+(answer||"(미입력)")+"\n\"\"\"\n\n";
+  });
+  batchPrompt+="[출력 형식 — JSON 배열만 출력, 다른 말 금지]\n[\n";
+  batchPrompt+=[
+    '  {"qid":"q1","discoverability":0,"mention_rank":null,"source_type":"none","source_use":"none","근거":"","인용출처":[],"HR_개선제안":""}',
+    '  {"qid":"q2","discoverability":0,"mention_rank":null,"source_type":"none","source_use":"none","근거":"","인용출처":[],"HR_개선제안":""}',
+    '  {"qid":"q3","brand":0,"source_type":"none","source_use":"none","근거":"","인용출처":[],"HR_개선제안":""}',
+    '  {"qid":"q4","iq":0,"source_type":"none","source_use":"none","근거":"","발견된_사실오류":"","인용출처":[],"HR_개선제안":""}',
+    '  {"qid":"q5","rec_grade":"none","rec_checks":{"reasons":false,"fit":false,"cautions":false},"source_type":"none","source_use":"none","근거":"","인용출처":[],"HR_개선제안":""}'
+  ].join(",\n");
+  batchPrompt+="\n]";
+  var unanswered=QUESTIONS.filter(function(q){return !(DATA[key(q.id,pid)]&&DATA[key(q.id,pid)].aiAnswer&&DATA[key(q.id,pid)].aiAnswer.trim());}).length;
+  if(unanswered>0&&!confirm(unanswered+"개 질문에 AI 답변이 없습니다. 계속할까요?"))return;
+  copyText(btn,batchPrompt,"일괄 채점 프롬프트");
+}
+function parseBatchJSON(pid){
+  var ta=document.getElementById("batchJson_"+pid);
+  if(!ta)return;
+  var raw=ta.value.trim();
+  if(!raw){toast("JSON을 먼저 붙여넣으세요");return;}
+  var arr;
+  try{
+    var cleaned=raw.replace(/^```[a-z]*\n?/i,"").replace(/```$/,"").trim();
+    arr=JSON.parse(cleaned);
+    if(!Array.isArray(arr))throw new Error("배열 형식이 아닙니다");
+  }catch(e){toast("JSON 파싱 실패: "+e.message);return;}
+  var applied=0;
+  arr.forEach(function(item){
+    var qid=item.qid;
+    if(!qid||!DATA[key(qid,pid)])return;
+    if(applyModelBItem(qid,pid,item))applied++;
+  });
+  ta.value="";
+  refreshAll();buildCards();
+  toast(applied+"개 질문 채점 결과가 반영되었습니다");
+}
+async function copyScoringPromptGlobal(){
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText)await navigator.clipboard.writeText(SCORING_PROMPT);
+    else{var ta=document.createElement("textarea");ta.value=SCORING_PROMPT;ta.style.cssText="position:fixed;opacity:0";document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();}
+    toast("채점 보조 프롬프트가 복사되었습니다");
+  }catch(e){toast("복사 실패");}
+}
+async function copyScoringPromptForCard(qid,pid,btn){
+  var c=DATA[key(qid,pid)];
+  var answer=(c&&c.aiAnswer?c.aiAnswer:"").trim();
+  var q=QUESTIONS.find(function(x){return x.id===qid;});
+  var p=PLATFORMS.find(function(x){return x.id===pid;});
+  var header="[감사 대상 질문: "+(q?q.title:qid)+" / AI: "+(p?p.name:pid)+" "+(p?p.plan:"")+"] \n\n";
+  var prompt=SCORING_PROMPT;
+  if(answer){prompt=prompt.replace("(여기에 채점할 AI 답변 전체를 붙여넣으시오)",answer);}
+  var final=header+prompt;
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText)await navigator.clipboard.writeText(final);
+    else{var ta=document.createElement("textarea");ta.value=final;ta.style.cssText="position:fixed;opacity:0";document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();}
+    var old=btn.textContent;btn.textContent="복사됨 ✓";setTimeout(function(){btn.textContent=old;},1600);
+    toast(answer?"채점 보조 프롬프트 + AI 답변이 복사되었습니다":"채점 보조 프롬프트가 복사되었습니다");
+  }catch(e){toast("복사 실패");}
+}
+function toast(m){var t=document.getElementById("toast");if(!t)return;t.textContent=m;t.classList.add("show");setTimeout(function(){t.classList.remove("show");},1900);}
+function exportJSON(){
+  var blob=new Blob([JSON.stringify({meta:{tool:"woomi-geo-audit-stage6-model-b",date:new Date().toISOString(),reportId:VIEWING_REPORT_ID||ACTIVE_REPORT_ID},data:DATA},null,2)],{type:"application/json"});
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  var fname="woomi_geo_audit_"+(VIEWING_REPORT_ID||ACTIVE_REPORT_ID||"draft").replace(/[^a-z0-9_-]/gi,"_")+"_"+new Date().toISOString().slice(0,10)+".json";
+  a.download=fname;a.click();URL.revokeObjectURL(a.href);
+  toast("JSON 파일이 저장되었습니다");
+}
+function importJSON(event){
+  var file=event.target.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var obj=JSON.parse(e.target.result);
+      DATA=obj.data||obj;
+      normalizeData();
+      ACTIVE_REPORT_ID=obj.meta&&obj.meta.reportId?obj.meta.reportId:ACTIVE_REPORT_ID;
+      VIEWING_REPORT_ID=ACTIVE_REPORT_ID;
+      var lbl=document.getElementById("activeReportLabel");
+      if(lbl&&ACTIVE_REPORT_ID)lbl.textContent=ACTIVE_REPORT_ID;
+      buildCards();refreshAll();
+      toast("JSON 데이터를 불러왔습니다");
+    }catch(err){toast("JSON 파싱 실패: "+err.message);}
+    event.target.value="";
+  };
+  reader.readAsText(file);
+}
+function resetAll(){
+  if(!confirm("모든 입력 데이터를 초기화할까요? 저장되지 않은 데이터는 삭제됩니다."))return;
+  init();buildCards();refreshAll();
+  toast("초기화되었습니다");
+}
+document.addEventListener("DOMContentLoaded",function(){init();autoLoad();});
+</script>
+</body>
+</html>

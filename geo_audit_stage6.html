@@ -1387,6 +1387,10 @@ const SITE_NAME_MAP={
   "LinkedIn":"linkedin.com","Indeed":"indeed.com","Glassdoor":"glassdoor.com",
   "Naver":"naver.com","YouTube":"youtube.com","Instagram":"instagram.com",
   "Wikipedia":"wikipedia.org","Namu":"namu.wiki",
+  // 건설업 특화 (Claude 웹검색 인용 형식)
+  "Consline":"consline.co.kr","ConWorker":"conwor.co.kr","ConWork":"conwor.co.kr",
+  "JobKorea":"jobkorea.co.kr","Catch":"catch.co.kr",
+  "Credejob":"credejob.com","Jasoseol":"jasoseol.com",
   // SNS
   "인스타그램":"instagram.com","유튜브":"youtube.com","페이스북":"facebook.com",
   // 위키
@@ -1442,9 +1446,13 @@ function parseCitationsByStyle(text, style){
     // Claude: [텍스트](https://url) 또는 [텍스트](domain.com) 형식 모두 처리
     const mdAll=text.match(/\[([^\]]+)\]\(([^)]+)\)/g)||[];
     mdAll.forEach(m=>{
+      const label=m.match(/\[([^\]]+)\]/)[1].trim();
       const u=m.match(/\]\(([^)]+)\)/)[1].trim();
       if(u.startsWith('http'))urls.push(u.replace(/[.,;:!?]+$/,''));
       else if(/^[a-z0-9\-]+\.[a-z]{2,}/i.test(u))urls.push('https://'+u.replace(/[.,;:!?]+$/,''));
+      // [Consline + 2](url) 형식 — 레이블에서 사이트명 추출 후 SITE_NAME_MAP 확인
+      const labelBase=label.split(/\s*[+\d]\s*/)[0].trim();
+      if(labelBase&&SITE_NAME_MAP[labelBase])urls.push('https://'+SITE_NAME_MAP[labelBase]);
     });
   }
   if(style==='korean_inline'){
@@ -1679,8 +1687,8 @@ async function backgroundLoadAllAnswers(reportId){
       // textarea 업데이트
       const el=document.getElementById('answer_'+q.id+'_'+p.id);
       if(el&&!el.dataset.userEdited)el.value=ans;
-      // 출처 자동 추출 (citedSources 비어있을 때만)
-      if(ans.trim()&&!(c.citedSources&&c.citedSources.length))analyzeSources(q.id,p.id,true);
+      // 출처 자동 추출 — 답변이 있으면 항상 재분석 (기존 타입 매핑은 유지됨)
+      if(ans.trim())analyzeSources(q.id,p.id,true);
       // Q행 상태 스팬 업데이트
       const st=cellStatus(c);
       const stEl=document.getElementById('qst_'+q.id+'_'+p.id);

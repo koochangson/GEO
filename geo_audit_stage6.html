@@ -1362,7 +1362,7 @@ function classifySource(url){
   if(host.endsWith(".or.kr"))return"cert";
 
   // 언론·기사
-  if(hit(["greened.co.kr","greenpostkorea.co.kr","hkbs.co.kr","greentvnews.com","cnews.co.kr","conslove.co.kr","businesspost.co.kr","fortunekorea.co.kr","thebell.co.kr","bloter.net","hansbiz.co.kr","dlenc.co.kr","safetynews.co.kr",
+  if(hit(["greened.co.kr","greenpostkorea.co.kr","hkbs.co.kr","greentvnews.com","cnews.co.kr","conslove.co.kr","businesspost.co.kr","fortunekorea.co.kr","thebell.co.kr","bloter.net","hansbiz.co.kr","dlenc.co.kr","safetynews.co.kr","newsspace.co.kr",
         "mk.co.kr","hankyung.com","dnews.co.kr","yna.co.kr","chosun.com",
           "donga.com","joongang.co.kr","joins.com","heraldcorp.com","mt.co.kr",
           "edaily.co.kr","fnnews.com","asiae.co.kr","newsis.com",
@@ -1427,7 +1427,7 @@ const SITE_NAME_MAP={
   // Claude 웹서치 단축 사이트명 (문장 끝 인용 형식)
   "Fortunekorea":"fortunekorea.co.kr","Fortune Korea":"fortunekorea.co.kr",
   "Safetynews":"safetynews.co.kr","Safety News":"safetynews.co.kr",
-  "Asiae":"asiae.co.kr","Sankun":"sankun.com",
+  "Asiae":"asiae.co.kr","Sankun":"sankun.com","산군":"sankun.com","뉴스스페이스":"newsspace.co.kr","Newsspace":"newsspace.co.kr",
   "Hankyung":"hankyung.com","Mk":"mk.co.kr","Yna":"yna.co.kr",
   "Edaily":"edaily.co.kr","Fnnews":"fnnews.com","Mt":"mt.co.kr",
   "Chosun":"chosun.com","Donga":"donga.com","Joongang":"joongang.co.kr",
@@ -1637,7 +1637,7 @@ function analyzeSources(qid,pid,silent=false,deferRefresh=false){
     if(!c.aiAnswerHtml)return'';
     try{const d=document.createElement('div');d.innerHTML=c.aiAnswerHtml;return(d.innerText||d.textContent||'');}catch(e){return'';}
   })();
-  const scanText=text||(htmlText);  // plain text 우선, 없으면 HTML 추출 텍스트
+  const scanText=(text+'\n'+htmlText).trim();  // plain text + HTML 텍스트 합산 스캔
   const richLinks=richAnswerLinks(c.aiAnswerHtml||'');
   const p=PLATFORMS.find(x=>x.id===pid)||{};
   // 플랫폼 전용 파서 (방법0 — style 기반)
@@ -1662,7 +1662,9 @@ function analyzeSources(qid,pid,silent=false,deferRefresh=false){
   for(const name of _sortedKeys){
     if(name.length<3||_nonCitationNames.has(name))continue;
     const escaped=name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-    const labelPattern=new RegExp(`(?:^|[ \\t])${escaped}(?:\\s*\\+\\s*\\d+)?(?=\\s*$)`,'gmi');
+    const labelPattern=_nonCitationNames.has(name)
+      ?new RegExp(`(?:^|[ \\t])${escaped}(?:\\s*\\+\\s*\\d+)?(?=\\s*$)`,'gmi')
+      :new RegExp(`(?<![\\w가-힣])${escaped}(?:\\s*\\+\\s*\\d+)?(?![\\w가-힣])`,'gi');
     if(labelPattern.test(scanText)){
       const domain=SITE_NAME_MAP[name];
       if(!_matchedDomains.has(domain)){_matchedDomains.add(domain);nameUrls.push("https://"+domain);}

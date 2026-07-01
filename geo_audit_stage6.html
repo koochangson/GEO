@@ -2312,8 +2312,7 @@ async function exportWord(){
       bodyHtml+=`<p style="margin:2pt 0;font-size:9pt;color:#444"><b>질문:</b> ${escapeH(q.prompt)}</p>`;
       if(answer){
         // 줄바꿈 → <br>
-        const ansHtml=answer.replace(/
-/g,'<br>');
+        const ansHtml=answer.replace(/\n/g,'<br>');
         bodyHtml+=`<p style="margin:4pt 0 4pt 8pt;font-size:9pt;border-left:3px solid #ccc;padding-left:6pt">${ansHtml}</p>`;
       }else{
         bodyHtml+=`<p style="margin:4pt 0;font-size:9pt;color:#aaa;font-style:italic">미입력</p>`;

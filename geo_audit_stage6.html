@@ -266,7 +266,7 @@
   .citation-confirm.done{background:var(--green-bg);border-color:#86efac;color:var(--green)}
   .citation-empty{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:10px;color:var(--muted);font-size:10.5px}
   .citation-retry{border:1px solid var(--line-strong);background:#fff;color:var(--ink-soft);border-radius:5px;padding:4px 8px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap}
-  .citation-reanalyze{display:flex;justify-content:flex-end;padding:2px 0 4px;border-bottom:1px solid var(--line);margin-bottom:4px}
+  .citation-reanalyze{display:flex;justify-content:flex-end;padding:6px 0 2px;border-top:1px solid var(--line);margin-top:4px}
   @media(max-width:640px){.citation-item{grid-template-columns:1fr 92px auto}}
 
   /* ---- field blocks (answer/eval) — collapsed by default ---- */
@@ -541,6 +541,7 @@
       <button onclick="document.getElementById('imp').click();closeMoreMenu()">JSON 불러오기</button>
       <button onclick="fillSample();closeMoreMenu()">예시 데이터</button>
       <button onclick="printReport();closeMoreMenu()">PDF 인쇄</button>
+      <button onclick="exportWord();closeMoreMenu()">Word 다운로드</button>
       <button class="danger" onclick="resetAll();closeMoreMenu()">초기화</button>
     </div>
   </div>
@@ -1378,8 +1379,7 @@ function classifySource(url){
           "tistory.com","brunch.co.kr","instiz.net","dcinside.com",
           "fmkorea.com","clien.net","ppomppu.co.kr","reddit.com","quora.com"]))return"review";
   if(url.includes("blog.naver.com")||url.includes("cafe.naver.com"))return"review";
-  if(hit(["youtube.com","instagram.com","facebook.com","twitter.com","x.com",
-          "linkedin.com","tiktok.com"]))return"review";
+  // SNS·소셜미디어 → 미분류 (우미 공식 채널은 위 official 블록에서 처리됨)
 
   // 위키
   if(hit(["namu.wiki","wikipedia.org","wikimedia.org"]))return"wiki";
@@ -1390,7 +1390,7 @@ function classifySource(url){
           "sankun.com","dealmatch.kr","conwor.co.kr","worker.co.kr",
           "jasoseol.com","linkareer.com","jumpit.io","rallit.com",
           "albamon.com","alba.co.kr","deepsearch.com","remember.co.kr",
-          "naver.com","daum.net"]))return"portal";
+          "naver.com","daum.net","linkedin.com"]))return"portal";
 
   return"unknown";
 }
@@ -1755,7 +1755,7 @@ function citationRowsHtml(qid,pid,c){
   if(!(c.aiAnswer||'').trim())return'';
   if(!c.citedSources?.length)return`<div class="citation-empty"><span>분석된 출처가 없습니다.</span><button type="button" class="citation-retry" onclick="analyzeSources('${qid}','${pid}',false)">출처 다시 분석</button></div>`;
   const reAnalyzeBtn=`<div class="citation-reanalyze"><button type="button" class="citation-retry" onclick="analyzeSources('${qid}','${pid}',false)" title="답변 텍스트에서 출처를 다시 추출합니다">↺ 출처 재분석</button></div>`;
-  return reAnalyzeBtn+c.citedSources.map((s,i)=>`<div class="citation-item ${s.reviewStatus==='confirmed'?'':'is-candidate'}"><a class="citation-url" href="${escapeA(s.url||"#")}" target="_blank" rel="noopener" title="탐지: ${escapeA(s.method||'기존')} · 신뢰도: ${escapeA(s.confidence||'미확인')}">${escapeH(s.url||"출처 없음")}</a><select onchange="setSourceType('${qid}','${pid}',${i},this.value)">${SOURCE_TAGS.map(t=>`<option value="${t.id}" ${s.type===t.id?"selected":""}>${t.label}</option>`).join("")}</select><button class="citation-confirm ${s.reviewStatus==='confirmed'?'done':''}" onclick="toggleSourceConfirmed('${qid}','${pid}',${i})">${s.reviewStatus==='confirmed'?'확인됨':'확인'}</button><button class="citation-remove" onclick="removeCitation('${qid}','${pid}',${i})" title="삭제">×</button></div>`).join("");
+  return c.citedSources.map((s,i)=>`<div class="citation-item ${s.reviewStatus==='confirmed'?'':'is-candidate'}"><a class="citation-url" href="${escapeA(s.url||"#")}" target="_blank" rel="noopener" title="탐지: ${escapeA(s.method||'기존')} · 신뢰도: ${escapeA(s.confidence||'미확인')}">${escapeH(s.url||"출처 없음")}</a><select onchange="setSourceType('${qid}','${pid}',${i},this.value)">${SOURCE_TAGS.map(t=>`<option value="${t.id}" ${s.type===t.id?"selected":""}>${t.label}</option>`).join("")}</select><button class="citation-confirm ${s.reviewStatus==='confirmed'?'done':''}" onclick="toggleSourceConfirmed('${qid}','${pid}',${i})">${s.reviewStatus==='confirmed'?'확인됨':'확인'}</button><button class="citation-remove" onclick="removeCitation('${qid}','${pid}',${i})" title="삭제">×</button></div>`).join("")+reAnalyzeBtn;
 }
 
 /* =====================================================================
@@ -2272,6 +2272,71 @@ function toggleMoreMenu(btn){
   menu.classList.toggle('open');
   const close=function(e){if(!btn.contains(e.target)&&!menu.contains(e.target)){menu.classList.remove('open');document.removeEventListener('click',close);}};
   if(menu.classList.contains('open'))setTimeout(()=>document.addEventListener('click',close),0);
+}
+
+
+/* ─── Word(.docx) 내보내기 ─────────────────────────────────── */
+async function exportWord(){
+  // html-docx-js 동적 로드
+  if(!window.htmlDocx){
+    await new Promise((res,rej)=>{
+      const s=document.createElement('script');
+      s.src='https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.js';
+      s.onload=res;s.onerror=()=>{toast('Word 라이브러리 로드 실패. 네트워크 확인 바랍니다.');rej();};
+      document.head.appendChild(s);
+    }).catch(()=>null);
+    if(!window.htmlDocx)return;
+  }
+
+  const rid=VIEWING_REPORT_ID||ACTIVE_REPORT_ID||'미지정';
+  const today=new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'});
+
+  // 보고서 HTML 구성 (printReport와 동일 로직)
+  let bodyHtml=`<h1 style="font-size:18pt;text-align:center;margin-bottom:4pt">우미건설 GEO 채용평판 AI 감사 보고서</h1>
+<p style="text-align:center;color:#555;margin-top:0">회차: ${rid} &nbsp;·&nbsp; 출력일: ${today}</p><hr>`;
+
+  PLATFORMS.forEach(p=>{
+    const cond=DATA.__meta&&DATA.__meta.conditions&&DATA.__meta.conditions[p.id];
+    const condTxt=cond?condSummaryText(p.id):'측정 조건 미입력';
+    bodyHtml+=`<h2 style="font-size:14pt;background:#f3f4f6;padding:6pt 8pt;margin-top:14pt">${escapeH(p.name)} · ${escapeH(p.plan)} <span style="font-size:10pt;color:#666">${escapeH(condTxt)}</span></h2>`;
+
+    QUESTIONS.forEach(q=>{
+      const c=DATA[key(q.id,p.id)];
+      if(!c)return;
+      const sc=cellScore(c,q.id);
+      const answer=(c.aiAnswer||'').trim();
+      const citations=(c.citedSources||[]).filter(s=>s.reviewStatus==='confirmed');
+      const citeTxt=citations.map(s=>(s.url||'').replace(/^https?:\/\/(www\.)?/,'').split('/')[0]).filter(Boolean).join(', ');
+
+      bodyHtml+=`<h3 style="font-size:11pt;margin-top:10pt;margin-bottom:2pt">${escapeH(q.tag)} ${escapeH(q.title)} <span style="font-weight:normal;color:#555">${sc==='—'||sc==='-'?'미평가':sc+'점'}</span></h3>`;
+      bodyHtml+=`<p style="margin:2pt 0;font-size:9pt;color:#444"><b>질문:</b> ${escapeH(q.prompt)}</p>`;
+      if(answer){
+        // 줄바꿈 → <br>
+        const ansHtml=answer.replace(/
+/g,'<br>');
+        bodyHtml+=`<p style="margin:4pt 0 4pt 8pt;font-size:9pt;border-left:3px solid #ccc;padding-left:6pt">${ansHtml}</p>`;
+      }else{
+        bodyHtml+=`<p style="margin:4pt 0;font-size:9pt;color:#aaa;font-style:italic">미입력</p>`;
+      }
+      if(citeTxt){
+        bodyHtml+=`<p style="margin:2pt 0;font-size:8.5pt;color:#666"><b>출처:</b> ${escapeH(citeTxt)}</p>`;
+      }
+    });
+    bodyHtml+=`<p>&nbsp;</p>`;
+  });
+
+  const fullHtml=`<!DOCTYPE html><html><head><meta charset="UTF-8">
+<style>body{font-family:'맑은 고딕',sans-serif;font-size:10pt}h1,h2,h3{page-break-after:avoid}p{margin:3pt 0}</style>
+</head><body>${bodyHtml}</body></html>`;
+
+  try{
+    const blob=window.htmlDocx.asBlob(fullHtml,{orientation:'portrait',margins:{top:720,right:720,bottom:720,left:720}});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download=`우미건설_GEO감사_${rid}.docx`;
+    a.click();URL.revokeObjectURL(url);
+    toast('Word 파일이 다운로드됩니다.');
+  }catch(e){toast('Word 생성 중 오류: '+e.message);}
 }
 
 function printReport(){

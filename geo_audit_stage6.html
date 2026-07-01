@@ -1482,12 +1482,16 @@ function plainTextToRichHtml(text){
   return value.split(/\n{2,}/).map(block=>`<p>${escapeH(block).replace(/\n/g,'<br>')}</p>`).join('');
 }
 
+function hasRichAnswerMarkup(html){
+  return /<(?:p|br|div|h[1-4]|strong|b|em|i|u|ul|ol|li|table|thead|tbody|tr|th|td|a|hr|blockquote|code|pre)\b/i.test(String(html||''));
+}
+
 function renderStoredAnswer(c){
-  return c.aiAnswerHtml?sanitizeRichHtml(c.aiAnswerHtml):plainTextToRichHtml(c.aiAnswer||'');
+  return hasRichAnswerMarkup(c.aiAnswerHtml)?sanitizeRichHtml(c.aiAnswerHtml):plainTextToRichHtml(c.aiAnswer||'');
 }
 
 function richAnswerCitationText(html){
-  if(!html)return'';
+  if(!hasRichAnswerMarkup(html))return'';
   const doc=new DOMParser().parseFromString(sanitizeRichHtml(html),'text/html');
   return [...doc.querySelectorAll('a[href]')]
     .map(a=>`${String(a.textContent||'').trim()} ${a.getAttribute('href')||''}`.trim())
@@ -1539,7 +1543,7 @@ function setRichAnswerContent(qid,pid,text,html){
   const hidden=document.getElementById(`answer_${qid}_${pid}`);
   const editor=document.getElementById(`answerRich_${qid}_${pid}`);
   if(hidden&&!hidden.dataset.userEdited)hidden.value=text||'';
-  if(editor&&!(hidden?.dataset.userEdited))editor.innerHTML=html?sanitizeRichHtml(html):plainTextToRichHtml(text||'');
+  if(editor&&!(hidden?.dataset.userEdited))editor.innerHTML=hasRichAnswerMarkup(html)?sanitizeRichHtml(html):plainTextToRichHtml(text||'');
 }
 
 function onAnswerInput(qid,pid,value){
@@ -2266,7 +2270,7 @@ function printReport(){
       const st=cellStatus(c);
       const sc=cellScore(c,q.id);
       const answer=(c.aiAnswer||'').trim();
-      const answerHtml=c.aiAnswerHtml?sanitizeRichHtml(c.aiAnswerHtml):plainTextToRichHtml(answer);
+      const answerHtml=hasRichAnswerMarkup(c.aiAnswerHtml)?sanitizeRichHtml(c.aiAnswerHtml):plainTextToRichHtml(answer);
       const citations=c.citedSources||[];
 
       // 점수 상세

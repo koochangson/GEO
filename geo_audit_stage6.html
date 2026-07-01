@@ -1632,6 +1632,12 @@ function parseCitationsByStyle(text, style){
 function analyzeSources(qid,pid,silent=false,deferRefresh=false){
   const c=DATA[key(qid,pid)];if(!c)return;
   const text=c.aiAnswer||'';
+  // aiAnswerHtml에서 plain text 추출 — Gemini 인용 레이블 등 plain text에 없는 내용 보완
+  const htmlText=(()=>{
+    if(!c.aiAnswerHtml)return'';
+    try{const d=document.createElement('div');d.innerHTML=c.aiAnswerHtml;return(d.innerText||d.textContent||'');}catch(e){return'';}
+  })();
+  const scanText=text||(htmlText);  // plain text 우선, 없으면 HTML 추출 텍스트
   const richLinks=richAnswerLinks(c.aiAnswerHtml||'');
   const p=PLATFORMS.find(x=>x.id===pid)||{};
   // 플랫폼 전용 파서 (방법0 — style 기반)
@@ -1657,7 +1663,7 @@ function analyzeSources(qid,pid,silent=false,deferRefresh=false){
     if(name.length<3||_nonCitationNames.has(name))continue;
     const escaped=name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
     const labelPattern=new RegExp(`(?:^|[ \\t])${escaped}(?:\\s*\\+\\s*\\d+)?(?=\\s*$)`,'gmi');
-    if(labelPattern.test(text)){
+    if(labelPattern.test(scanText)){
       const domain=SITE_NAME_MAP[name];
       if(!_matchedDomains.has(domain)){_matchedDomains.add(domain);nameUrls.push("https://"+domain);}
     }
@@ -1677,7 +1683,7 @@ function analyzeSources(qid,pid,silent=false,deferRefresh=false){
   const labelRe=/(?<=[가-힣.!?:\s,])[ \t]([A-Z][a-z][a-zA-Z0-9]{1,17})(?=[\s,\n/]|$)/g;
   const _seenLabels=new Set([..._matchedDomains]);
   let _lm;
-  while((_lm=labelRe.exec(text))!==null){
+  while((_lm=labelRe.exec(scanText))!==null){
     const nm=_lm[1];
     if(_SKIP.has(nm))continue;
     if(SITE_NAME_MAP[nm]){
